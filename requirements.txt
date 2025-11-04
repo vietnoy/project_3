@@ -1,0 +1,32 @@
+# Core dependencies
+langchain==0.1.0
+openai==1.7.0
+chromadb==0.4.22
+python-dotenv==1.0.0
+
+# Text processing
+tiktoken==0.5.2
+pypdf==3.17.4
+
+# Optional: For local embeddings (free alternative to OpenAI)
+sentence-transformers==2.2.2
+
+# Optional: For open-source LLMs
+# transformers==4.36.2
+# torch==2.1.2
+
+# UI Options (choose one or more)
+streamlit==1.29.0        # Easiest web interface
+gradio==4.13.0           # Great for ML demos
+chainlit==0.7.700        # Built for chatbots
+
+# Development tools
+jupyter==1.0.0
+ipykernel==6.28.0
+pytest==7.4.3
+black==23.12.1
+flake8==7.0.0
+
+# Optional: For advanced features
+# faiss-cpu==1.7.4       # Alternative vector DB (faster)
+# pinecone-client==3.0.0  # Cloud vector DB

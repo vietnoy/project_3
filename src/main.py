@@ -1,36 +1,25 @@
-"""
-Main application for Smart Contract Security Assistant
+"""Smart Contract Security Assistant - RAG-based chatbot for smart contract security"""
 
-This is the entry point for the RAG-based chatbot that provides:
-1. Q&A about smart contract security
-2. Code analysis for vulnerabilities
-3. Automated code fixing
-"""
-
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import RetrievalQA
+from langchain_community.llms import Ollama
 from database import load_vulnerability_database
 from chains import create_qa_chain, create_analysis_chain, create_fix_chain
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 
 class SmartContractSecurityBot:
-    """Main chatbot class with 3 core features"""
+    """Main chatbot class for Q&A, Code Analysis, and Code Fixing"""
 
     def __init__(self):
-        """Initialize the bot with vector database and LLM"""
         print("Loading vulnerability database...")
         self.vectorstore = load_vulnerability_database()
 
-        print("Initializing LLM...")
-        self.llm = ChatOpenAI(
-            model="gpt-4",
-            temperature=0,
-            api_key=os.getenv("OPENAI_API_KEY")
+        print("Initializing Ollama LLM (Local & Free)...")
+        self.llm = Ollama(
+            model="gemma3:4b",
+            temperature=0
         )
 
         print("Creating chains...")
@@ -41,15 +30,7 @@ class SmartContractSecurityBot:
         print("Bot ready!")
 
     def answer_question(self, question: str) -> dict:
-        """
-        Feature 1: Answer questions about smart contract security
-
-        Args:
-            question: User's security question
-
-        Returns:
-            dict with 'answer' and 'sources'
-        """
+        """Answer questions about smart contract security using RAG"""
         result = self.qa_chain(question)
         return {
             'answer': result['result'],
@@ -57,32 +38,15 @@ class SmartContractSecurityBot:
         }
 
     def analyze_code(self, code: str) -> dict:
-        """
-        Feature 2: Analyze smart contract code for vulnerabilities
-
-        Args:
-            code: Solidity smart contract code
-
-        Returns:
-            dict with vulnerability analysis
-        """
+        """Analyze smart contract code for vulnerabilities"""
         return self.analysis_chain.run(code)
 
     def fix_code(self, code: str) -> dict:
-        """
-        Feature 3: Fix vulnerabilities in smart contract code
-
-        Args:
-            code: Vulnerable Solidity code
-
-        Returns:
-            dict with fixed code and explanations
-        """
+        """Fix vulnerabilities in smart contract code"""
         return self.fix_chain.run(code)
 
 
 def main():
-    """Main function - simple CLI interface"""
     bot = SmartContractSecurityBot()
 
     print("\n" + "="*60)

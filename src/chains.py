@@ -1,22 +1,11 @@
-"""
-LangChain chains for different features
+"""LangChain chains for Q&A, Code Analysis, and Code Fixing"""
 
-This module contains:
-1. Q&A chain (Feature 1)
-2. Code analysis chain (Feature 2)
-3. Code fixing chain (Feature 3)
-"""
-
-from langchain.chains import RetrievalQA, LLMChain
-from langchain.prompts import PromptTemplate
+from langchain_classic.chains import RetrievalQA, LLMChain
+from langchain_core.prompts import PromptTemplate
 
 
 def create_qa_chain(llm, vectorstore):
-    """
-    Create Q&A chain for answering security questions
-
-    Feature 1: Simple question-answering using RAG
-    """
+    """Create Q&A chain for answering security questions using RAG"""
     return RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
@@ -29,11 +18,7 @@ def create_qa_chain(llm, vectorstore):
 
 
 def create_analysis_chain(llm, vectorstore):
-    """
-    Create code analysis chain for identifying vulnerabilities
-
-    Feature 2: Analyze smart contract code
-    """
+    """Create code analysis chain for identifying vulnerabilities"""
 
     analysis_template = """
     You are a smart contract security expert. Analyze the following Solidity code for vulnerabilities.
@@ -78,11 +63,7 @@ def create_analysis_chain(llm, vectorstore):
 
 
 def create_fix_chain(llm, vectorstore):
-    """
-    Create code fixing chain for rewriting vulnerable code
-
-    Feature 3: Fix vulnerabilities in smart contract code
-    """
+    """Create code fixing chain for rewriting vulnerable code"""
 
     fix_template = """
     You are a smart contract security expert. Fix the vulnerabilities in the following Solidity code.
@@ -131,9 +112,3 @@ def create_fix_chain(llm, vectorstore):
         }
 
     return type('FixChain', (), {'run': fix_code})()
-
-
-if __name__ == "__main__":
-    # Test chains (requires database and LLM setup)
-    print("This module should be imported, not run directly.")
-    print("See main.py for usage examples.")

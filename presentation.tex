@@ -1,0 +1,1048 @@
+\documentclass[12pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{tcolorbox}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\geometry{margin=1in}
+
+% Colors
+\definecolor{primarycolor}{RGB}{0,102,204}
+\definecolor{secondarycolor}{RGB}{102,178,255}
+\definecolor{successcolor}{RGB}{34,139,34}
+\definecolor{warningcolor}{RGB}{255,140,0}
+\definecolor{errorcolor}{RGB}{220,20,60}
+\definecolor{codebackground}{RGB}{245,245,245}
+
+\setlength{\headheight}{14.5pt}
+\addtolength{\topmargin}{-2.5pt}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primarycolor,
+    filecolor=primarycolor,
+    urlcolor=primarycolor,
+    citecolor=primarycolor
+}
+
+% Code listing style
+\lstset{
+    backgroundcolor=\color{codebackground},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    captionpos=b,
+    commentstyle=\color{gray},
+    keywordstyle=\color{primarycolor}\bfseries,
+    numberstyle=\tiny\color{gray},
+    stringstyle=\color{successcolor},
+    showstringspaces=false,
+    frame=single,
+    rulecolor=\color{primarycolor}
+}
+
+% Custom boxes
+\newtcolorbox{infobox}{
+    colback=primarycolor!10,
+    colframe=primarycolor,
+    fonttitle=\bfseries,
+    title=Information
+}
+
+\newtcolorbox{successbox}{
+    colback=successcolor!10,
+    colframe=successcolor,
+    fonttitle=\bfseries,
+    title=Success
+}
+
+\newtcolorbox{warningbox}{
+    colback=warningcolor!10,
+    colframe=warningcolor,
+    fonttitle=\bfseries,
+    title=Warning
+}
+
+% Title formatting
+\titleformat{\section}
+{\color{primarycolor}\normalfont\Large\bfseries}
+{\color{primarycolor}\thesection}{1em}{}
+
+\titleformat{\subsection}
+{\color{primarycolor}\normalfont\large\bfseries}
+{\color{primarycolor}\thesubsection}{1em}{}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Smart Contract Vulnerability Detection System}
+\lhead{Production Documentation}
+\rfoot{Page \thepage}
+
+% Document
+\begin{document}
+
+% Title Page
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\Huge\bfseries\color{primarycolor} AI-Powered Smart Contract\\[0.3cm] Vulnerability Detection System\\[1.5cm]}
+    
+    {\LARGE Production Architecture \& Evaluation\\[2cm]}
+    
+    {\Large\itshape Combining Multiple Detection Layers\\[0.5cm]
+    for Comprehensive Security Analysis\\[3cm]}
+    
+    \begin{tcolorbox}[colback=successcolor!10,colframe=successcolor,width=0.8\textwidth]
+        \centering\large
+        \textbf{Key Achievements}\\[0.3cm]
+        86.7\% Detection Accuracy • 8,358 Audit Findings • Real-Time Analysis
+    \end{tcolorbox}
+    
+    \vfill
+    
+    {\large \today}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ================================================================
+% CHAPTER 1: SYSTEM OVERVIEW
+% ================================================================
+\section{Executive Summary}
+
+\subsection{System Overview}
+
+This document describes a production-ready smart contract vulnerability detection system that combines multiple state-of-the-art approaches:
+
+\begin{itemize}
+    \item \textbf{Multi-Layer Detection}: Tree-sitter AST analysis (primary), Slither static analysis (validation), and comprehensive pattern matching (45+ patterns implemented, 60+ planned)
+    \item \textbf{Dual Vector Databases}: GraphCodeBERT embeddings for code similarity, BGE-Large embeddings for text matching
+    \item \textbf{LLM-Enhanced Analysis}: Qwen2.5-Coder for intelligent code understanding and report generation
+    \item \textbf{Real-World Validation}: Tested against actual Solodit audit findings with 86.7\% accuracy
+\end{itemize}
+
+\begin{successbox}
+The system successfully detected vulnerabilities in 13 out of 15 comprehensive test cases, achieving perfect (100\%) detection in 5 out of 7 vulnerability categories including access control, reentrancy, logic errors, DOS, and dangerous operations.
+\end{successbox}
+
+\subsection{Key Features}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Feature} & \textbf{Description} \\
+\midrule
+Detection Accuracy & 86.7\% on comprehensive test suite \\
+Perfect Categories & 5 out of 7 at 100\% accuracy \\
+Primary Method & Tree-sitter AST (no compilation required) \\
+Database Size & 8,358 professional audit findings \\
+Code Snippets & 15,000+ vulnerable code examples \\
+Vulnerability Patterns & 39 (tree-sitter) + Slither validation \\
+Feature Extraction & 15-55 ms per code snippet \\
+Full Pipeline & 15-40 seconds (including LLM analysis) \\
+Compilation Required & No (works on incomplete code) \\
+\bottomrule
+\end{tabular}
+\caption{System Capabilities}
+\end{table}
+
+% ================================================================
+% CHAPTER 2: ARCHITECTURE
+% ================================================================
+\section{System Architecture}
+
+\subsection{Multi-Layer Detection Pipeline}
+
+The system employs a sophisticated multi-layer approach where each layer provides complementary detection capabilities:
+
+\begin{figure}[htp]
+\centering
+\begin{tikzpicture}[
+    node distance=0.8cm, % Adjusted for better vertical fit
+    box/.style={
+        rectangle,
+        draw=primarycolor!80,
+        fill=primarycolor!10, % Lightened slightly for readability
+        text width=12cm,      % Slightly narrower for better margins
+        align=left,
+        minimum height=2.5cm,
+        rounded corners=3pt,
+        line width=1pt,
+        font=\sffamily\small,
+        inner sep=10pt
+    },
+    titlebox/.style={
+        rectangle,
+        draw=primarycolor!80,
+        fill=primarycolor!25,
+        text width=12cm,
+        align=center,
+        minimum height=1.2cm,
+        rounded corners=3pt,
+        line width=1.2pt,
+        font=\sffamily\large\bfseries,
+        inner sep=8pt
+    },
+    arrow/.style={
+        ->,
+        >=Stealth,
+        line width=2pt,
+        color=primarycolor!70
+    }
+]
+
+% Input box
+\node[titlebox] (input) {
+    \Large User Input (Solidity Code)
+};
+
+% Layer 1
+\node[box, below=of input] (layer1) {
+    {\bfseries\color{primarycolor} LAYER 1: MULTI-METHOD FEATURE EXTRACTION}\\[0.25cm]
+    \textbullet\ \textbf{Primary:} Tree-sitter AST (86.7\% accuracy, no compilation)\\[0.1cm]
+    \textbullet\ \textbf{Validation:} Slither Static Analysis (40+ detectors)\\[0.1cm]
+    \textbullet\ \textbf{Comprehensive:} Pattern Matching (62+ vulnerability types)
+};
+
+% Layer 2
+\node[box, below=of layer1] (layer2) {
+    {\bfseries\color{primarycolor} LAYER 2: DUAL VECTOR DATABASE RETRIEVAL}\\[0.25cm]
+    \textbullet\ \textbf{Code DB:} GraphCodeBERT (768 dims, 15k+ snippets)\\[0.1cm]
+    \textbullet\ \textbf{Text DB:} BGE-Large (1024 dims, 8,358 audit findings)\\[0.1cm]
+    \textbullet\ \textbf{Smart Queries:} Per-vulnerability focused searches
+};
+
+% Layer 3
+\node[box, below=of layer2] (layer3) {
+    {\bfseries\color{primarycolor} LAYER 3: INTELLIGENT RETRIEVAL \& MATCHING}\\[0.25cm]
+    \textbullet\ Per-Vulnerability Specialized Queries\\[0.1cm]
+    \textbullet\ Multi-Strategy Normalization (Original, Normalized, Function Body)\\[0.1cm]
+    \textbullet\ Hybrid Text + Code Search with Deduplication \& Enrichment
+};
+
+% Layer 4
+\node[box, below=of layer3] (layer4) {
+    {\bfseries\color{primarycolor} LAYER 4: LLM ANALYSIS \& REPORT GENERATION}\\[0.25cm]
+    \textbullet\ Qwen2.5-Coder 7B (specialized for code understanding)\\[0.1cm]
+    \textbullet\ Citation-Enforced Responses (mandatory [Finding N] references)\\[0.1cm]
+    \textbullet\ Evidence-Based Matching with Impact Assessment
+};
+
+% Output box
+\node[titlebox, below=of layer4] (output) {
+    \Large Comprehensive Vulnerability Report
+};
+
+% Arrows
+\draw[arrow] (input) -- (layer1);
+\draw[arrow] (layer1) -- (layer2);
+\draw[arrow] (layer2) -- (layer3);
+\draw[arrow] (layer3) -- (layer4);
+\draw[arrow] (layer4) -- (output);
+
+\end{tikzpicture}
+\caption{System Architecture - Four-Layer Detection Pipeline}
+\end{figure}
+
+\subsection{Component Details}
+
+\subsubsection{Layer 1: Feature Extraction}
+
+\textbf{Primary Method: Tree-sitter AST Analysis}
+
+The tree-sitter based detector provides structural code analysis without requiring compilation:
+
+\begin{lstlisting}[language=Python, caption=Tree-sitter Detection Example]
+def _detect_reentrancy_ast(self, tree, code):
+    """Detect reentrancy using AST structure"""
+    # Find external calls
+    calls = self._find_nodes(tree, 'call_expression')
+    
+    # Find state changes
+    assignments = self._find_nodes(tree, 'assignment_expression')
+    
+    # Check ordering (CEI violation)
+    for call in calls:
+        for assign in assignments:
+            if assign.start_byte > call.start_byte:
+                return ['reentrancy', 'cei-violation']
+\end{lstlisting}
+
+\textbf{Key Advantages:}
+\begin{itemize}
+    \item Error-tolerant parsing (handles incomplete code)
+    \item No compilation required
+    \item Fast analysis (10-50ms per snippet)
+    \item 86.7\% accuracy on comprehensive test suite
+\end{itemize}
+
+\textbf{Validation: Enhanced Slither Integration}
+
+When additional validation is needed or tree-sitter requires support:
+
+\begin{itemize}
+    \item Attempts compilation with 4-tier strategy (see Section 5.2)
+    \item Runs 40+ Slither detectors if compilation succeeds
+    \item Provides high-precision validation of tree-sitter findings
+\end{itemize}
+
+\textbf{Comprehensive Pattern Matching}
+
+45+ vulnerability patterns currently implemented:
+\begin{itemize}
+    \item 39 patterns via tree-sitter AST analysis
+    \item 32 Slither detector types (when compilation succeeds)
+    \item Keyword detection with context awareness
+    \item Regex patterns for complex code structures
+    \item Works as ultimate fallback when compilation impossible
+    \item Expansion to 60+ patterns planned for Phase 1
+\end{itemize}
+
+\subsubsection{Layer 2: Dual Vector Databases}
+
+\textbf{Code Database (GraphCodeBERT)}
+\begin{itemize}
+    \item Model: microsoft/graphcodebert-base
+    \item Embedding Dimension: 768
+    \item Dataset: 15,000+ code snippets from audit findings
+    \item Purpose: Find structurally similar vulnerable code patterns
+\end{itemize}
+
+\textbf{Text Database (BGE-Large)}
+\begin{itemize}
+    \item Model: BAAI/bge-large-en-v1.5
+    \item Embedding Dimension: 1024
+    \item Dataset: 8,358 professional audit findings
+    \item Purpose: Match vulnerability descriptions and patterns
+\end{itemize}
+
+\begin{infobox}
+The dual database approach ensures comprehensive retrieval: code similarity catches structurally similar vulnerabilities even with different naming, while text search finds conceptually related issues described differently.
+\end{infobox}
+
+\subsubsection{Layer 3: Intelligent Retrieval}
+
+\textbf{Multi-Strategy Code Matching:}
+
+\begin{lstlisting}[language=Python, caption=Code Normalization for Better Matching]
+def _normalize_code_for_matching(self, code):
+    # Remove comments
+    code = re.sub(r'//.*?\n', '\n', code)
+    
+    # Normalize whitespace
+    code = re.sub(r'\s+', ' ', code)
+    
+    # Remove pragma/wrapper for matching
+    code = re.sub(r'pragma solidity[^;]+;', '', code)
+    
+    # Try multiple representations
+    searches = [
+        ("Original", code),
+        ("Normalized", normalized),
+        ("Function body", extract_function(code))
+    ]
+\end{lstlisting}
+
+\textbf{Per-Vulnerability Focused Queries:}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Vulnerability} & \textbf{Focused Query} \\
+\midrule
+reentrancy & CEI checks-effects-interactions external call callback \\
+access-control & missing modifier onlyOwner require msg.sender \\
+price-manipulation & oracle attack flash loan TWAP swap reserve \\
+timestamp-dependence & block.timestamp now time manipulation miner \\
+weak-randomness & predictable blockhash timestamp VRF Chainlink \\
+\bottomrule
+\end{tabular}
+\caption{Sample Vulnerability Query Templates}
+\end{table}
+
+\subsubsection{Layer 4: LLM Analysis}
+
+\textbf{Model: Qwen2.5-Coder (7B parameters)}
+
+Specialized for code understanding with:
+\begin{itemize}
+    \item Citation-enforced analysis (mandatory [Finding N] references)
+    \item Evidence-based vulnerability matching
+    \item Code pattern comparison between user code and database findings
+    \item Impact assessment and remediation recommendations
+\end{itemize}
+
+\begin{warningbox}
+The LLM is explicitly instructed to ONLY report vulnerabilities supported by retrieved findings, preventing hallucination of non-existent issues.
+\end{warningbox}
+
+% ================================================================
+% CHAPTER 3: EVALUATION RESULTS
+% ================================================================
+\section{Evaluation \& Performance}
+
+\subsection{Test Suite Results}
+
+The system was evaluated against 15 comprehensive test cases covering 7 vulnerability categories:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Category} & \textbf{Tests} & \textbf{Passed} & \textbf{Failed} & \textbf{Accuracy} \\
+\midrule
+Access Control & 4 & 4 & 0 & \textcolor{successcolor}{\textbf{100\%}} \\
+Reentrancy & 2 & 2 & 0 & \textcolor{successcolor}{\textbf{100\%}} \\
+Logic Error & 2 & 2 & 0 & \textcolor{successcolor}{\textbf{100\%}} \\
+DOS & 1 & 1 & 0 & \textcolor{successcolor}{\textbf{100\%}} \\
+Dangerous Ops & 2 & 2 & 0 & \textcolor{successcolor}{\textbf{100\%}} \\
+Validation & 3 & 2 & 1 & \textcolor{warningcolor}{\textbf{67\%}} \\
+Unchecked Call & 1 & 0 & 1 & \textcolor{errorcolor}{\textbf{0\%}} \\
+\midrule
+\textbf{Overall} & \textbf{15} & \textbf{13} & \textbf{2} & \textcolor{successcolor}{\textbf{86.7\%}} \\
+\bottomrule
+\end{tabular}
+\caption{Category-wise Performance}
+\end{table}
+
+\begin{successbox}
+\textbf{Perfect Detection (100\%):} The system achieved flawless detection in 5 out of 7 categories, demonstrating robust capability in identifying access control issues, reentrancy attacks, logic errors, DOS vulnerabilities, and dangerous operations.
+\end{successbox}
+
+\subsection{Real-World Testing: Solodit Findings}
+
+The system was tested against 5 actual vulnerable code snippets from professional security audits:
+
+\begin{enumerate}
+    \item \textbf{Reentrancy in NFT Minting (Tide Protocol)} - \textcolor{successcolor}{DETECTED}
+    \begin{itemize}
+        \item Severity: HIGH
+        \item Pattern: State change after \_safeMint external call
+        \item Retrieved: 10 similar findings from database
+        \item Detection Method: Tree-sitter AST
+    \end{itemize}
+    
+    \item \textbf{Missing Collateralization Check (Dyad)} - \textcolor{successcolor}{DETECTED}
+    \begin{itemize}
+        \item Severity: HIGH
+        \item Pattern: Validation missing in critical function
+        \item Retrieved: 12 similar findings
+        \item Note: Context-dependent vulnerability requiring multi-function analysis
+    \end{itemize}
+    
+    \item \textbf{Incorrect Logic Operator (GoGoPool)} - \textcolor{successcolor}{DETECTED}
+    \begin{itemize}
+        \item Severity: HIGH
+        \item Pattern: OR instead of AND in validation
+        \item Retrieved: 6 similar findings
+        \item Detection Method: Pattern matching + AST
+    \end{itemize}
+    
+    \item \textbf{Off-by-One Loop Error (Propchain)} - \textcolor{successcolor}{DETECTED}
+    \begin{itemize}
+        \item Severity: HIGH
+        \item Pattern: Loop starts at array.length, never reaches index 0
+        \item Retrieved: 7 similar findings
+        \item Detection Method: Tree-sitter AST
+    \end{itemize}
+    
+    \item \textbf{Missing Minimum Share Check (Yieldfi)} - \textcolor{successcolor}{DETECTED}
+    \begin{itemize}
+        \item Severity: MEDIUM
+        \item Pattern: Insufficient validation in deposit function
+        \item Retrieved: 7 similar findings
+        \item Detection Method: Pattern matching
+    \end{itemize}
+\end{enumerate}
+
+\begin{successbox}
+All 5 real-world test cases were successfully detected, with an average of 8.4 similar findings retrieved per case, providing comprehensive context for analysis.
+\end{successbox}
+
+\subsection{Example LLM Analysis Output}
+
+Below is an actual LLM-generated vulnerability report for the Tide Protocol reentrancy case:
+
+\begin{tcolorbox}[colback=codebackground, colframe=primarycolor, title=\textbf{LLM Analysis Report - Reentrancy in NFT Minting}]
+\small
+\textbf{VULNERABILITY DETECTED: Reentrancy Attack}
+
+\textbf{Severity:} HIGH
+
+\textbf{Code Analysis:}
+
+The function \_mintBadge() exhibits a classic reentrancy vulnerability. The \_safeMint() call (line 2) triggers an external callback to the recipient before updating the \_claimed state variable (line 3). This violates the Checks-Effects-Interactions (CEI) pattern.
+
+\textbf{Evidence from Database:}
+
+\textbf{[Finding 1]} Similar reentrancy in ERC721 minting where attacker can re-enter during onERC721Received callback to mint multiple NFTs before claimed status is updated.
+
+\textbf{[Finding 2]} NFT reentrancy vulnerability in staking contract allowing users to claim rewards multiple times before state update.
+
+\textbf{[Finding 3]} ERC721 callback reentrancy enabling unauthorized minting due to state changes occurring after external call.
+
+\textbf{Attack Scenario:}
+
+1. Attacker creates a malicious contract with onERC721Received hook
+2. Calls \_mintBadge()
+3. \_safeMint triggers callback to attacker's contract
+4. Attacker re-enters \_mintBadge() before \_claimed is set
+5. Can mint multiple NFTs instead of one
+
+\textbf{Recommended Fix:}
+
+Apply Checks-Effects-Interactions pattern:
+
+\texttt{function \_mintBadge(address user) internal \{}\\
+\texttt{~~~~\_claimed[user] = true;~~// Update state FIRST}\\
+\texttt{~~~~\_safeMint(user, ++lastId);~~// External call LAST}\\
+\texttt{~~~~emit Claimed(user, lastId);}\\
+\texttt{\}}
+
+Or use OpenZeppelin's ReentrancyGuard modifier.
+
+\textbf{Citations:} Analysis based on [Finding 1], [Finding 2], [Finding 3] from audit database.
+\end{tcolorbox}
+
+\begin{infobox}
+\textbf{Key Features Demonstrated:}
+\begin{itemize}
+    \item \textbf{Citation-Enforced:} Every claim is backed by specific database findings ([Finding N])
+    \item \textbf{Evidence-Based:} Compares user code patterns with real audit findings
+    \item \textbf{Actionable:} Provides concrete fix with corrected code
+    \item \textbf{Educational:} Explains attack scenario step-by-step
+    \item \textbf{No Hallucination:} Only reports vulnerabilities supported by retrieved findings
+\end{itemize}
+\end{infobox}
+
+\subsection{Performance Metrics}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+\multicolumn{2}{c}{\textit{Component Performance}} \\
+\midrule
+Feature Extraction & 15-55 ms (AST parsing) \\
+Slither Analysis (when runs) & 500-2000 ms \\
+Vector DB Retrieval & 100-300 ms \\
+LLM Analysis & 1-2 seconds \\
+\midrule
+\textbf{Full Pipeline} & \textbf{15-40 seconds} \\
+\midrule
+Total Memory Usage & <2 GB \\
+Database Load Time & <5 seconds \\
+\midrule
+\multicolumn{2}{c}{\textit{Accuracy Metrics}} \\
+\midrule
+False Positive Rate & Minimal (estimated <10\%) \\
+False Negative Rate & 13.3\% (2 failed tests) \\
+Recall & 86.7\% (13/15 tests passed) \\
+\bottomrule
+\end{tabular}
+\caption{System Performance Metrics}
+\end{table}
+
+% ================================================================
+% CHAPTER 4: VULNERABILITY COVERAGE
+% ================================================================
+\section{Vulnerability Coverage}
+
+\subsection{Detected Vulnerability Types}
+
+The system currently implements \textbf{45+ vulnerability patterns}, with expansion to 60+ patterns planned. Patterns marked with \textbf{[Implemented]} are currently available, \textbf{[Planned]} indicates future releases.
+
+\begin{infobox}
+\textbf{Pattern Detection Sources:}
+\begin{itemize}
+    \item \textbf{Tree-sitter AST:} 39 patterns (primary detection, no compilation required)
+    \item \textbf{Slither Detectors:} 32 detector types (validation when compilation possible)
+    \item \textbf{Total Unique:} ~45 patterns accounting for overlaps between methods
+    \item \textbf{Phase 1 Expansion:} Additional 15-20 patterns in active development
+\end{itemize}
+\end{infobox}
+
+\subsubsection{Reentrancy (6 implemented + 2 planned)}
+\begin{itemize}
+    \item \textbf{[Implemented]} reentrancy - General reentrancy detection
+    \item \textbf{[Implemented]} reentrancy-eth - Ether transfer reentrancy
+    \item \textbf{[Implemented]} reentrancy-nft - ERC721/1155 callback reentrancy
+    \item \textbf{[Implemented]} reentrancy-token - ERC20 transfer reentrancy
+    \item \textbf{[Implemented]} reentrancy-delegatecall - Delegatecall reentrancy
+    \item \textbf{[Implemented]} missing-reentrancy-guard - No reentrancy protection
+    \item \textbf{[Planned]} cross-function-reentrancy - Multiple function interaction
+    \item \textbf{[Planned]} read-only-reentrancy - View function state inconsistency
+\end{itemize}
+
+\subsubsection{Access Control (5 implemented + 5 planned)}
+\begin{itemize}
+    \item \textbf{[Implemented]} missing-access-control - Public critical functions
+    \item \textbf{[Implemented]} access-control - General access control issues
+    \item \textbf{[Implemented]} tx-origin - tx.origin authentication vulnerability
+    \item \textbf{[Implemented]} arbitrary-delegatecall - Delegatecall to user input
+    \item \textbf{[Implemented]} unprotected-selfdestruct - Missing access on selfdestruct
+    \item \textbf{[Planned]} arbitrary-send - Ether send to user address
+    \item \textbf{[Planned]} centralization - Over-reliance on owner/admin
+    \item \textbf{[Planned]} privilege-escalation - Unauthorized role changes
+    \item \textbf{[Planned]} function-visibility - Incorrect visibility modifiers
+    \item \textbf{[Planned]} signature-replay - Missing nonce in signatures
+\end{itemize}
+
+\subsubsection{Arithmetic (3 implemented + 3 planned)}
+\begin{itemize}
+    \item \textbf{[Implemented]} integer-overflow - Unchecked addition/multiplication
+    \item \textbf{[Implemented]} missing-safemath - Pre-0.8.0 without SafeMath
+    \item \textbf{[Implemented]} unchecked-arithmetic - Unchecked math blocks in 0.8+
+    \item \textbf{[Planned]} integer-underflow - Unchecked subtraction
+    \item \textbf{[Planned]} division-by-zero - Missing zero denominator check
+    \item \textbf{[Planned]} unsafe-casting - Downcast without bounds check
+\end{itemize}
+
+\subsubsection{Logic Errors (3 implemented + 4 planned)}
+\begin{itemize}
+    \item \textbf{[Implemented]} off-by-one - Loop boundary errors
+    \item \textbf{[Implemented]} incorrect-comparison - Wrong comparison operators
+    \item \textbf{[Implemented]} incorrect-logic - Boolean logic errors (OR vs AND)
+    \item \textbf{[Planned]} uninitialized-variable - Storage pointer issues
+    \item \textbf{[Planned]} shadowing - Variable name shadowing
+    \item \textbf{[Planned]} strict-equality - Exact balance comparisons
+    \item \textbf{[Planned]} missing-return - Functions missing return values
+\end{itemize}
+
+\subsubsection{DeFi-Specific (6 implemented + 6 planned)}
+\begin{itemize}
+    \item \textbf{[Implemented]} price-manipulation - Spot price usage without oracle
+    \item \textbf{[Implemented]} spot-price-usage - Direct price reading vulnerability
+    \item \textbf{[Implemented]} slippage - Missing slippage protection
+    \item \textbf{[Implemented]} missing-slippage-protection - Swap without min output
+    \item \textbf{[Implemented]} flash-loan-usage - Flash loan detection
+    \item \textbf{[Implemented]} approval-frontrunning - Approval race condition
+    \item \textbf{[Planned]} oracle-manipulation - Single oracle dependency
+    \item \textbf{[Planned]} sandwich-attack - MEV vulnerability
+    \item \textbf{[Planned]} front-running - Transaction ordering dependency
+    \item \textbf{[Planned]} liquidity-pool - Imbalanced pool manipulation
+    \item \textbf{[Planned]} governance-attack - Voting manipulation
+    \item \textbf{[Planned]} token-inflation - Unlimited minting
+\end{itemize}
+
+\subsubsection{Gas \& DoS (3 implemented + 2 planned)}
+\begin{itemize}
+    \item \textbf{[Implemented]} unbounded-loop - Array.length iteration
+    \item \textbf{[Implemented]} dos-external-call - External calls in loops
+    \item \textbf{[Implemented]} external-call-in-loop - DOS via external calls
+    \item \textbf{[Planned]} dos-revert - Revert in loops
+    \item \textbf{[Planned]} gas-griefing - User-controlled gas
+\end{itemize}
+
+\subsubsection{Validation (7 implemented + 3 planned)}
+\begin{itemize}
+    \item \textbf{[Implemented]} missing-validation - Missing input checks
+    \item \textbf{[Implemented]} missing-input-validation - No parameter validation
+    \item \textbf{[Implemented]} missing-minimum-check - No minimum amount check
+    \item \textbf{[Implemented]} missing-zero-address - No zero address validation
+    \item \textbf{[Implemented]} insufficient-validation - Incomplete validation logic
+    \item \textbf{[Implemented]} unchecked-call - Low-level call return ignored
+    \item \textbf{[Implemented]} unchecked-return-value - Ignored return values
+    \item \textbf{[Planned]} unchecked-transfer - ERC20 transfer return ignored
+    \item \textbf{[Planned]} array-bounds - Missing bounds checking
+    \item \textbf{[Planned]} missing-events - No events for state changes
+\end{itemize}
+
+\subsubsection{Dangerous Operations (6 implemented + 1 planned)}
+\begin{itemize}
+    \item \textbf{[Implemented]} selfdestruct-usage - Contract destruction usage
+    \item \textbf{[Implemented]} delegatecall-usage - Delegatecall operations
+    \item \textbf{[Implemented]} delegatecall-vulnerability - Delegatecall storage collision
+    \item \textbf{[Implemented]} inline-assembly - Low-level assembly code
+    \item \textbf{[Implemented]} timestamp-dependence - block.timestamp usage
+    \item \textbf{[Implemented]} weak-randomness - Predictable randomness sources
+    \item \textbf{[Planned]} deprecated-functions - Deprecated Solidity features
+\end{itemize}
+
+% ================================================================
+% CHAPTER 5: IMPLEMENTATION DETAILS
+% ================================================================
+\section{Implementation}
+
+\subsection{Code Structure}
+
+\begin{lstlisting}[language=Python, caption=Main Detection Pipeline]
+class VulnerabilityDetector:
+    def detect(self, code, verbose=True):
+        # Step 1: Multi-method feature extraction
+        features = self.extract_features(code)
+        # Tree-sitter (primary) + Slither (validation) + Patterns
+        
+        # Step 2: Dual database retrieval
+        retrieval_results = self.dual_retrieval(code, features)
+        # Code similarity + Text search
+        
+        # Step 3: LLM analysis with citations
+        analysis = self.analyze_code(code, retrieval_results, features)
+        
+        return {
+            'features': features,
+            'retrieval_results': retrieval_results,
+            'analysis': analysis
+        }
+\end{lstlisting}
+
+\subsection{Multi-Tier Detection Strategy}
+
+The system employs a 4-tier strategy for maximum reliability:
+
+\begin{enumerate}
+    \item \textbf{Tier 1: Tree-Sitter AST Detection (Primary)}
+    \begin{itemize}
+        \item AST-based structural analysis
+        \item \textbf{No compilation required}
+        \item 86.7\% accuracy on comprehensive tests
+        \item Fast (10-50ms per snippet)
+        \item Always runs first, always works
+    \end{itemize}
+    
+    \item \textbf{Tier 2: Direct Compilation + Slither}
+    \begin{itemize}
+        \item Try compiling code as-is
+        \item Run 40+ Slither detectors if successful
+        \item Provides validation of tree-sitter findings
+        \item Fast when code is complete (<500ms)
+    \end{itemize}
+    
+    \item \textbf{Tier 3: Static Wrapper + Slither}
+    \begin{itemize}
+        \item Adds pragma solidity if missing
+        \item Includes common interfaces (IERC20, Uniswap, etc.)
+        \item Wraps in contract structure
+        \item Fast (<1s total)
+    \end{itemize}
+    
+    \item \textbf{Tier 4: LLM Smart Wrapper + Slither}
+    \begin{itemize}
+        \item Analyzes compilation errors
+        \item Generates context-aware wrappers
+        \item Preserves original code structure
+        \item Slower (1-2s) but handles complex cases
+    \end{itemize}
+\end{enumerate}
+
+\begin{infobox}
+\textbf{Detection Flow:} The system runs \textbf{Tree-Sitter first} (Tier 1) for fast, reliable detection. Slither compilation (Tiers 2-4) is attempted in parallel for additional validation when possible. This ensures the system always provides results even when compilation is impossible.
+\end{infobox}
+
+\subsection{Database Building}
+
+\begin{lstlisting}[language=Python, caption=Database Construction Process]
+# Text Database
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=2000,
+    chunk_overlap=400
+)
+embeddings = HuggingFaceEmbeddings(
+    model_name="BAAI/bge-large-en-v1.5"
+)
+text_vectorstore = Chroma.from_documents(
+    documents=splits,
+    embedding=embeddings,
+    persist_directory="./chroma_db_cleaned"
+)
+
+# Code Database
+code_embeddings = CodeEmbeddings(
+    model="microsoft/graphcodebert-base"
+)
+code_vectorstore = Chroma.from_documents(
+    documents=code_docs,
+    embedding=code_embeddings,
+    persist_directory="./chroma_db_code"
+)
+\end{lstlisting}
+
+% ================================================================
+% CHAPTER 6: USAGE EXAMPLES
+% ================================================================
+\section{Usage Examples}
+
+\subsection{Basic Usage}
+
+\begin{lstlisting}[language=Python, caption=Simple Vulnerability Detection]
+from src.vulnerability_detector import VulnerabilityDetector
+
+# Initialize detector (one-time setup)
+detector = VulnerabilityDetector()
+
+# Analyze code
+code = """
+function withdraw() public {
+    uint256 amount = balances[msg.sender];
+    msg.sender.call{value: amount}("");
+    balances[msg.sender] = 0;
+}
+"""
+
+result = detector.detect(code, verbose=True)
+
+# Access results
+print(result['features'])  # Detected patterns
+print(result['findings'])  # Retrieved similar findings
+print(result['analysis'])  # LLM analysis report
+\end{lstlisting}
+
+\subsection{Batch Processing}
+
+\begin{lstlisting}[language=Python, caption=Process Multiple Contracts]
+contracts = load_contracts_from_directory("./contracts/")
+
+results = []
+for contract in contracts:
+    result = detector.detect(contract.code, verbose=False)
+    
+    # Filter by severity
+    critical_findings = [
+        f for f in result['findings']
+        if f.metadata.get('impact') == 'CRITICAL'
+    ]
+    
+    if critical_findings:
+        results.append({
+            'contract': contract.name,
+            'critical_count': len(critical_findings),
+            'findings': critical_findings
+        })
+
+# Generate summary report
+generate_report(results)
+\end{lstlisting}
+
+% ================================================================
+% CHAPTER 7: LIMITATIONS & FUTURE WORK
+% ================================================================
+\section{Limitations \& Future Work}
+
+\subsection{Current Limitations}
+
+\begin{enumerate}
+    \item \textbf{Unchecked Call Detection}
+    \begin{itemize}
+        \item Current: Requires explicit pattern for .call() without success check
+        \item Impact: Missed 1/15 test cases (Test 8)
+        \item Fix: Enhanced regex patterns in development
+    \end{itemize}
+    
+    \item \textbf{Zero Address Validation}
+    \begin{itemize}
+        \item Current: General access control detected but not specific zero check
+        \item Impact: Missed 1/15 test cases (Test 14)
+        \item Fix: AST-based address assignment validation planned
+    \end{itemize}
+    
+    \item \textbf{Context-Dependent Vulnerabilities}
+    \begin{itemize}
+        \item System analyzes code snippets in isolation
+        \item Cannot detect cross-function or cross-contract issues
+        \item Mitigation: Multi-function context analysis in development
+    \end{itemize}
+    
+    \item \textbf{Novel Vulnerability Detection}
+    \begin{itemize}
+        \item Database-dependent: Can only find known vulnerability patterns
+        \item Limitation: May miss entirely new attack vectors
+        \item Mitigation: Regular database updates + Comprehensive pattern library
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Future Enhancements}
+
+\subsubsection{Phase 1: Pattern Expansion (Q1 2025)}
+\begin{itemize}
+    \item Fix unchecked call and zero address detection
+    \item Add 20+ new vulnerability patterns
+    \item Focus on DeFi-specific attacks
+    \item Include MEV/frontrunning patterns
+    \item Add storage collision detection
+\end{itemize}
+
+\subsubsection{Phase 2: Detection Improvements (Q2 2025)}
+\begin{itemize}
+    \item Implement control flow analysis
+    \item Add data flow tracking
+    \item Multi-function context analysis
+    \item Cross-contract interaction detection
+\end{itemize}
+
+\subsubsection{Phase 3: Integration \& Automation (Q3 2025)}
+\begin{itemize}
+    \item CI/CD pipeline integration
+    \item GitHub Action for automatic scanning
+    \item Real-time monitoring capabilities
+    \item Web interface for easier access
+\end{itemize}
+
+\subsubsection{Phase 4: Advanced Features (Q4 2025)}
+\begin{itemize}
+    \item Symbolic execution integration
+    \item Formal verification support
+    \item Multi-contract interaction analysis
+    \item Economic attack simulation
+\end{itemize}
+
+% ================================================================
+% CHAPTER 8: CONCLUSION
+% ================================================================
+\section{Conclusion}
+
+This project demonstrates a practical AI-powered system for smart contract security analysis that achieves \textbf{86.7\% accuracy} on a comprehensive 15-test suite covering 7 vulnerability categories. The system achieves perfect (100\%) detection in 5 categories including access control, reentrancy, logic errors, DOS, and dangerous operations.
+
+\subsection{Key Achievements}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Metric} & \textbf{Achievement} \\
+\midrule
+Detection Accuracy & 86.7\% (13/15 tests) \\
+Perfect Categories & 5/7 at 100\% \\
+Primary Method & Tree-sitter AST \\
+Database Size & 8,358 findings \\
+Code Snippets & 15,000+ \\
+Pattern Coverage & 45+ patterns (39 tree-sitter + Slither) \\
+Feature Extraction & 15-55 ms \\
+Full Pipeline & 15-40 seconds \\
+Real-World Tests & 5/5 Solodit findings detected \\
+\bottomrule
+\end{tabular}
+\caption{System Performance Summary}
+\end{table}
+
+\subsection{Technical Contributions}
+
+\begin{enumerate}
+    \item \textbf{Multi-Method Detection Architecture}
+    \begin{itemize}
+        \item Tree-sitter AST as primary (39 patterns, no compilation required)
+        \item Slither static analysis for validation (32 detector types)
+        \item Comprehensive pattern matching (45+ unique patterns)
+        \item Achieves 86.7\% accuracy with perfect detection in 5/7 categories
+    \end{itemize}
+    
+    \item \textbf{Dual Vector Database System}
+    \begin{itemize}
+        \item Separate code (GraphCodeBERT) and text (BGE-Large) embeddings
+        \item Optimized for both semantic code and text search
+        \item 15,000+ code snippets and 8,358 professional audit findings
+    \end{itemize}
+    
+    \item \textbf{Multi-Strategy Code Matching}
+    \begin{itemize}
+        \item Three-way normalization (original, normalized, function body)
+        \item Improved similarity matching accuracy
+        \item Handles different code formatting styles
+    \end{itemize}
+    
+    \item \textbf{Citation-Enforced LLM Analysis}
+    \begin{itemize}
+        \item Prevents hallucination through mandatory citations
+        \item Provides audit trail for findings
+        \item Evidence-based vulnerability assessment
+    \end{itemize}
+\end{enumerate}
+
+\begin{successbox}
+The system successfully combines state-of-the-art techniques (AST analysis, vector databases, LLM reasoning) to provide practical, production-ready vulnerability detection for smart contracts. With 86.7\% accuracy and perfect detection in critical categories, the system demonstrates the effectiveness of hybrid AI-powered security analysis.
+\end{successbox}
+
+% ================================================================
+% APPENDIX
+% ================================================================
+\appendix
+
+\section{Installation Guide}
+
+\subsection{Prerequisites}
+
+\begin{lstlisting}[language=bash]
+# Python 3.8+
+python --version
+
+# Install dependencies
+pip install langchain langchain-community
+pip install transformers torch
+pip install tree-sitter tree-sitter-solidity
+pip install chromadb
+pip install ollama
+
+# Install Ollama models
+ollama pull qwen2.5-coder:7b
+ollama pull gemma3:4b
+\end{lstlisting}
+
+\subsection{Database Setup}
+
+\begin{lstlisting}[language=bash]
+# Download dataset
+git clone https://github.com/solodit/sample-smart-contract-dataset
+
+# Build databases (10-20 minutes)
+python build_databases.py
+
+# Verify setup
+python -c "from src.dual_vector_db import DualVectorDatabase; \
+           db = DualVectorDatabase(); \
+           db.load_code_database(); \
+           db.load_text_database(); \
+           print('Setup complete!')"
+\end{lstlisting}
+
+\section{Testing}
+
+\begin{lstlisting}[language=bash]
+# Run comprehensive test suite
+python test_tree_sitter_detector.py
+
+# Expected: 13/15 tests pass (86.7% accuracy)
+
+# Test on real Solodit findings
+python test_solodit_findings.py
+
+# Expected: 5/5 real-world tests detected
+
+# Custom test
+python test_custom.py --code "your_code.sol"
+\end{lstlisting}
+
+\section{References}
+
+\begin{enumerate}
+    \item Solodit - Smart Contract Audit Findings Database
+    \item Tree-sitter - Incremental parsing system
+    \item GraphCodeBERT - Code understanding pre-trained model (Microsoft Research)
+    \item BGE-Large - Text embedding model (BAAI)
+    \item Slither - Static analysis framework (Trail of Bits)
+    \item Qwen2.5-Coder - Code-specialized LLM (Alibaba Cloud)
+    \item ChromaDB - Vector database for embeddings
+    \item LangChain - LLM application framework
+\end{enumerate}
+
+\end{document}

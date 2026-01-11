@@ -1,14 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git init:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(ollama:*)",
-      "Bash(where:*)",
-      "Bash(\"$USERPROFILE/AppData/Local/Programs/Ollama/ollama.exe\" list)"
-    ],
-    "deny": [],
-    "ask": []
+      "Bash(venv/bin/python:*)",
+      "Bash(rm:*)",
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "Bash(python build_dual_databases.py:*)",
+      "Bash(../../venv/bin/python:*)",
+      "Bash(kill:*)",
+      "Bash(python:*)",
+      "Bash(ps:*)",
+      "Bash(ls:*)",
+      "Bash(git add:*)"
+    ]
   }
 }

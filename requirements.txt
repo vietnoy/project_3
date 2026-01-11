@@ -1,21 +1,11 @@
-# Core dependencies
-langchain
-langchain-community
-langchain-core
-langchain-openai
-chromadb
-python-dotenv
-
-# Free embeddings (no API key or cost!)
-sentence-transformers
-
-# Text processing
+langchain==0.2.11
+langchain-community==0.2.10
+langchain-core==0.2.23
+langchain-text-splitters==0.2.2
+chromadb==0.4.22
+sentence-transformers==2.7.0
+python-dotenv==1.0.0
 tiktoken==0.5.2
-
-# Optional: UI (install later if needed)
-# streamlit==1.29.0
-# gradio==4.13.0
-
-# Optional: Development tools (install later if needed)
-# jupyter==1.0.0
-# pytest==7.4.3
+jq==1.6.0
+email-validator>=2.0.0
+slither-analyzer>=0.11.0

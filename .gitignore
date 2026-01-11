@@ -48,6 +48,10 @@ env/
 chroma_db/
 *.chromadb
 *.faiss
+new_rag_system/databases/text_db/
+new_rag_system/databases/code_db/
+new_rag_system/databases/text_db_large/
+new_rag_system/databases/code_db_large/
 
 # Logs
 *.log
@@ -66,3 +70,6 @@ htmlcov/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Large datasets
+sample-smart-contract-dataset1/

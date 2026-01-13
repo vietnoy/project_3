@@ -112,7 +112,7 @@
 \textbf{Ví dụ: Hàm withdraw có lỗ hổng}
 
 \lstset{style=soliditystyle}
-\begin{lstlisting}[language=Solidity]
+\begin{lstlisting}
 function withdraw() public {
     uint256 amount = balances[msg.sender];
 
@@ -149,7 +149,7 @@ function withdraw() public {
 \textbf{Trích xuất Generic Patterns - KHÔNG phân loại vulnerability}
 
 \lstset{style=pythonstyle}
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}
 class StructuralPatternExtractor:
     def extract_patterns(self, code: str) -> Dict:
         return {
@@ -184,7 +184,7 @@ Chúng ta KHÔNG nói "đây là reentrancy" - chỉ mô tả cấu trúc: "call
 \end{itemize}
 
 \lstset{style=pythonstyle}
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}
 # Code similarity search
 code_results = code_db.similarity_search(
     user_code,
@@ -200,7 +200,7 @@ code_results = code_db.similarity_search(
     \item Tìm: Descriptions tương tự
 \end{itemize}
 
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}
 # Pattern description search
 text_results = text_db.similarity_search(
     "external call state change",
@@ -219,7 +219,7 @@ Chỉ retrieve findings với \textbf{>60\% similarity} để giảm noise
 \textbf{Dữ liệu từ Database}
 
 \lstset{style=jsonstyle}
-\begin{lstlisting}[language=json]
+\begin{lstlisting}
 {
   "finding_id": "solodit_7425",
   "title": "Reentrancy vulnerability in NFT minting",
@@ -285,7 +285,7 @@ LLM không "biết" reentrancy - nó \textbf{học} bằng cách thấy code tư
 
 \begin{frame}[fragile]{LLM Prompt (Đơn giản hóa)}
 \lstset{style=pythonstyle}
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}
 prompt = f"""
 Ban dang phan tich code bang cach so sanh voi audit findings.
 

@@ -11,7 +11,10 @@
       "Bash(python:*)",
       "Bash(ps:*)",
       "Bash(ls:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(chmod:*)"
     ]
   }
 }

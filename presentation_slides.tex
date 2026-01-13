@@ -672,6 +672,84 @@ Safe code & No vuln & No detection & \textcolor{green}{PASS} & TN \\
 \end{columns}
 \end{frame}
 
+\begin{frame}[fragile]{Demo: Xem Test Cases và LLM Output}
+\textbf{Có Scripts Để Xem Dữ Liệu Thực Tế}
+
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{1. Export Test Cases:}
+\lstset{style=pythonstyle}
+\begin{lstlisting}
+cd new_rag_system/evaluation
+python export_test_cases.py
+
+# Output: test_cases_export/
+#   - 00_index.json
+#   - test_01_*.json (10 files)
+\end{lstlisting}
+
+\vspace{0.3cm}
+\textbf{2. Run Demo Detection:}
+\begin{lstlisting}
+python demo_detection.py --tests 3
+
+# Output: demo_outputs/
+#   - demo_03_*.json
+#   - demo_03_*_llm_output.txt
+\end{lstlisting}
+
+\column{0.5\textwidth}
+\textbf{Files Created:}
+
+\begin{itemize}
+    \item \texttt{test\_XX\_*.json}: Test case structure
+    \item \texttt{demo\_XX\_*.json}: Full detection result
+    \item \texttt{demo\_XX\_*\_llm\_output.txt}: LLM analysis only
+\end{itemize}
+
+\vspace{0.3cm}
+\begin{block}{Có Thể Xem Ngay}
+Tất cả test cases và LLM outputs được lưu dạng JSON/TXT dễ đọc
+\end{block}
+
+\vspace{0.3cm}
+\textbf{Documentation:}\\
+\texttt{new\_rag\_system/evaluation/DEMO\_GUIDE.md}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Demo Output Example}
+\textbf{File: demo\_03\_unchecked\_return\_value\_llm\_output.txt}
+
+\lstset{style=jsonstyle}
+\begin{lstlisting}
+TEST CASE: Unchecked return value
+CODE: function executeTransaction(address target, bytes memory data) public {
+        target.call(data);
+      }
+
+LLM ANALYSIS OUTPUT:
+================================================================================
+
+### Unchecked Call Return Value - MEDIUM
+
+**Finding Reference:** [Finding solodit_5123] (84% similarity)
+
+**Structural Match:**
+- Line 1: target.call(data) without checking return value
+- Similar to [Finding solodit_5123] where external call result ignored
+
+**Why This Is Vulnerable:**
+The call() function returns (bool success, bytes memory data).
+Not checking the success boolean means failed calls are silently ignored,
+potentially leading to inconsistent state or loss of funds.
+
+**Recommendation:** Check return value and handle failure appropriately.
+
+**Confidence:** 88%
+\end{lstlisting}
+\end{frame}
+
 % SECTION 5
 \section{Cải Tiến Hệ Thống}
 

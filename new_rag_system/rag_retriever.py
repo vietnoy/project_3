@@ -181,12 +181,16 @@ class RAGRetriever:
             # Typical range: 0.0-2.0, where 0 is identical
             # min_similarity 0.65 means we want distance < 0.7
             max_distance = 1.0 - self.min_similarity
-            filtered = [doc for doc, score in results_with_scores if score < max_distance][:k]
+            filtered_with_scores = [(doc, score) for doc, score in results_with_scores if score < max_distance][:k]
 
-            if verbose and len(filtered) < len(results_with_scores[:k]):
-                print(f"  Filtered {len(results_with_scores[:k]) - len(filtered)} low-similarity results")
+            if verbose and len(filtered_with_scores) < len(results_with_scores[:k]):
+                print(f"  Filtered {len(results_with_scores[:k]) - len(filtered_with_scores)} low-similarity results")
 
-            return filtered
+            # Attach similarity scores to metadata
+            for doc, score in filtered_with_scores:
+                doc.metadata['similarity_score'] = round(1.0 - score, 3)  # Convert distance to similarity
+
+            return [doc for doc, _ in filtered_with_scores]
         except Exception as e:
             if verbose:
                 print(f"  Warning: Code search failed: {e}")
@@ -202,10 +206,16 @@ class RAGRetriever:
 
             # Filter by similarity threshold
             max_distance = 1.0 - self.min_similarity
-            filtered = [doc for doc, score in results_with_scores if score < max_distance][:k]
+            filtered_with_scores = [(doc, score) for doc, score in results_with_scores if score < max_distance][:k]
 
-            if verbose and len(filtered) < len(results_with_scores[:k]):
-                print(f"  Filtered {len(results_with_scores[:k]) - len(filtered)} low-similarity results")
+            if verbose and len(filtered_with_scores) < len(results_with_scores[:k]):
+                print(f"  Filtered {len(results_with_scores[:k]) - len(filtered_with_scores)} low-similarity results")
+
+            # Attach similarity scores to metadata
+            for doc, score in filtered_with_scores:
+                doc.metadata['similarity_score'] = round(1.0 - score, 3)  # Convert distance to similarity
+
+            filtered = [doc for doc, _ in filtered_with_scores]
 
             return filtered
         except Exception as e:

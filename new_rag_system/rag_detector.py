@@ -273,8 +273,12 @@ Begin your analysis (remember: ONE vulnerability maximum):
         formatted = []
 
         for i, finding in enumerate(findings, 1):
+            similarity = finding.get('similarity_score', 'N/A')
+            if similarity != 'N/A':
+                similarity = f"{similarity:.1%}"
+
             formatted.append(f"""
-[Finding {i}] {finding['title']}
+[Finding {i}] {finding['title']} (Similarity: {similarity})
 Firm: {finding['firm_name']} | Protocol: {finding['protocol_name']} | Impact: {finding['impact']}
 Retrieved by: {finding['retrieval_strategy']}
 
@@ -284,6 +288,112 @@ Retrieved by: {finding['retrieval_strategy']}
 """)
 
         return '\n'.join(formatted)
+
+    def export_to_json(self, result: Dict, output_file: str) -> None:
+        """Export detection result to JSON file"""
+        import json
+        from datetime import datetime
+
+        export_data = {
+            'timestamp': datetime.now().isoformat(),
+            'system_version': '1.0.0',
+            'configuration': {
+                'k_code': self.k_code,
+                'k_text': self.k_text,
+                'min_similarity': self.retriever.min_similarity,
+                'model': self.model
+            },
+            'structural_patterns': {
+                'external_calls_count': len(result['structural_patterns']['external_calls']),
+                'state_changes_count': len(result['structural_patterns']['state_changes']),
+                'functions_count': len(result['structural_patterns']['functions']),
+                'dangerous_operations': result['structural_patterns']['dangerous_operations'],
+                'ordering_patterns': result['structural_patterns']['ordering_patterns']
+            },
+            'retrieval_results': {
+                'num_findings': len(result['retrieved_findings']),
+                'findings': [
+                    {
+                        'title': f['title'],
+                        'firm': f['firm_name'],
+                        'protocol': f['protocol_name'],
+                        'impact': f['impact'],
+                        'similarity_score': f.get('similarity_score', 'N/A'),
+                        'retrieval_strategy': f['retrieval_strategy']
+                    }
+                    for f in result['retrieved_findings']
+                ]
+            },
+            'analysis': result['analysis'],
+            'metadata': result['metadata']
+        }
+
+        with open(output_file, 'w') as f:
+            json.dump(export_data, f, indent=2)
+
+        print(f"Results exported to {output_file}")
+
+    def get_database_stats(self) -> Dict:
+        """Get database coverage statistics"""
+        import glob
+        import json
+
+        stats = {
+            'total_findings': 0,
+            'by_impact': {},
+            'by_firm': {},
+            'coverage': {}
+        }
+
+        # Count findings in dataset
+        data_dir = self.retriever.code_db._persist_directory.replace('/code_db', '')
+        data_dir = data_dir.replace('/databases', '')
+        json_files = glob.glob(f"{data_dir}/../../sample-smart-contract-dataset/*.json")
+
+        for filepath in json_files:
+            try:
+                with open(filepath, 'r') as f:
+                    finding = json.load(f)
+
+                stats['total_findings'] += 1
+
+                # Count by impact
+                impact = finding.get('impact', 'UNKNOWN')
+                stats['by_impact'][impact] = stats['by_impact'].get(impact, 0) + 1
+
+                # Count by firm
+                firm = finding.get('firm_name', 'Unknown')
+                stats['by_firm'][firm] = stats['by_firm'].get(firm, 0) + 1
+
+            except:
+                continue
+
+        return stats
+
+    def print_database_stats(self) -> None:
+        """Print database coverage statistics"""
+        print()
+        print("=" * 80)
+        print("DATABASE COVERAGE STATISTICS")
+        print("=" * 80)
+
+        stats = self.get_database_stats()
+
+        print(f"\nTotal Findings in Database: {stats['total_findings']}")
+
+        print(f"\nBy Impact Level:")
+        for impact, count in sorted(stats['by_impact'].items(), key=lambda x: x[1], reverse=True):
+            percentage = (count / stats['total_findings']) * 100
+            print(f"  {impact}: {count} ({percentage:.1f}%)")
+
+        print(f"\nTop Audit Firms (by finding count):")
+        top_firms = sorted(stats['by_firm'].items(), key=lambda x: x[1], reverse=True)[:5]
+        for firm, count in top_firms:
+            percentage = (count / stats['total_findings']) * 100
+            print(f"  {firm}: {count} ({percentage:.1f}%)")
+
+        print("=" * 80)
+        print()
 
 
 # Example usage

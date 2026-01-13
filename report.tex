@@ -2,6 +2,7 @@
 
 % Packages
 \usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
 \usepackage{amsmath}
@@ -10,124 +11,124 @@
 \usepackage{hyperref}
 \usepackage{cite}
 \usepackage{listings}
-\usepackage{xcolor}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{setspace}
 
-% Hyperref settings
+% Hyperref settings - plain style
 \hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,
-    urlcolor=cyan,
-    citecolor=blue
+    colorlinks=false,
+    linkbordercolor=white,
+    citebordercolor=white,
+    urlbordercolor=white
 }
 
-% Code listing style
+% Code listing style - plain
 \lstset{
     basicstyle=\ttfamily\small,
     breaklines=true,
     frame=single,
     numbers=left,
-    numberstyle=\tiny,
-    backgroundcolor=\color{gray!10}
+    numberstyle=\tiny
 }
 
+% Line spacing
+\onehalfspacing
+
 % Title
-\title{\textbf{RAG-Heavy Approach to Smart Contract Vulnerability Detection: \\
-A Data-Driven Security Analysis System}}
+\title{\textbf{Hệ Thống Phát Hiện Lỗ Hổng Smart Contract\\Sử Dụng Kiến Trúc RAG-Heavy:\\Phương Pháp Phân Tích Bảo Mật Dựa Trên Dữ Liệu}}
 
 \author{
-    Smart Contract Security Research \\
+    Nghiên Cứu Bảo Mật Smart Contract \\
     \texttt{project\_3}
 }
 
-\date{January 2026}
+\date{Tháng 1, 2026}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-Smart contract vulnerabilities pose significant risks in blockchain applications, leading to substantial financial losses. Traditional static analysis tools suffer from high false positive rates and limited adaptability, while pure Large Language Model (LLM) approaches are prone to hallucination. This paper presents a novel RAG-heavy (Retrieval-Augmented Generation) architecture that achieves 80\% F1 score in vulnerability detection by emphasizing data-driven discovery over hard-coded features. Our system uses minimal structural extraction (30\%), heavy retrieval from dual vector databases (40\%), and LLM-based pattern discovery (30\%). Evaluated on 10 hand-written test cases with zero data leakage, the system demonstrates 90\% recall and 80\% precision, backed by 912 professional audit findings. Key innovations include citation-enforced analysis to prevent hallucination, similarity threshold filtering for quality assurance, and missing pattern detection for vulnerabilities defined by absence. The system's architecture enables rapid adaptation to new vulnerability types through database updates without code modifications, making it suitable for evolving security landscapes.
+Lỗ hổng trong smart contract gây ra rủi ro nghiêm trọng cho các ứng dụng blockchain, dẫn đến thiệt hại tài chính đáng kể. Các công cụ static analysis truyền thống có tỷ lệ false positive cao và khả năng thích nghi hạn chế, trong khi các phương pháp pure LLM dễ bị hallucination. Bài báo này trình bày một kiến trúc RAG-heavy mới đạt 80\% F1 score trong việc phát hiện lỗ hổng bằng cách nhấn mạnh data-driven discovery thay vì hard-coded features. Hệ thống sử dụng structural extraction tối thiểu (30\%), heavy retrieval từ dual vector databases (40\%), và LLM-based pattern discovery (30\%). Được đánh giá trên 10 test cases viết tay với zero data leakage, hệ thống đạt 90\% recall và 80\% precision, được hỗ trợ bởi 912 audit findings chuyên nghiệp. Các đổi mới chính bao gồm citation-enforced analysis để ngăn hallucination, similarity threshold filtering để đảm bảo chất lượng, và missing pattern detection cho các lỗ hổng được định nghĩa bởi sự vắng mặt. Kiến trúc của hệ thống cho phép thích nghi nhanh chóng với các loại lỗ hổng mới thông qua cập nhật database mà không cần thay đổi code.
 \end{abstract}
 
-\section{Introduction}
+\section{Giới Thiệu}
 
-Smart contracts are self-executing programs deployed on blockchain platforms, managing billions of dollars in digital assets. A single vulnerability in a smart contract can lead to catastrophic losses, as evidenced by high-profile incidents such as the DAO hack (\$60M loss) \cite{dao2016}, Parity wallet bug (\$150M frozen) \cite{parity2017}, and numerous DeFi exploits in recent years \cite{defihacks2023}.
+Smart contracts là các chương trình tự thực thi được triển khai trên nền tảng blockchain, quản lý hàng tỷ USD tài sản kỹ thuật số. Một lỗ hổng duy nhất trong smart contract có thể dẫn đến thiệt hại thảm khốc, như được chứng minh qua các sự cố nổi tiếng như vụ hack DAO (mất \$60M) \cite{dao2016}, lỗi Parity wallet (\$150M bị đóng băng) \cite{parity2017}, và nhiều vụ tấn công DeFi trong những năm gần đây \cite{defihacks2023}.
 
-\subsection{Problem Statement}
+\subsection{Vấn Đề}
 
-Traditional approaches to vulnerability detection face several challenges:
+Các phương pháp phát hiện lỗ hổng truyền thống đối mặt với nhiều thách thức:
 
 \begin{itemize}
-    \item \textbf{Static Analysis Tools}: High false positive rates (40-60\%) \cite{slither2019, mythril2018}, require complete compilable code, struggle with context-dependent vulnerabilities
-    \item \textbf{Feature-Heavy Systems}: Hard-coded detection rules become outdated as new attack patterns emerge, require significant engineering effort for each new vulnerability type
-    \item \textbf{Pure LLM Approaches}: Prone to hallucination, lack of evidence backing, inconsistent detection across similar patterns \cite{chatgpt2023security}
+    \item \textbf{Static Analysis Tools}: Tỷ lệ false positive cao (40-60\%) \cite{slither2019, mythril2018}, yêu cầu code có thể compile hoàn chỉnh, khó khăn với context-dependent vulnerabilities
+    \item \textbf{Feature-Heavy Systems}: Detection rules hard-coded trở nên lỗi thời khi các attack patterns mới xuất hiện, yêu cầu nỗ lực engineering đáng kể cho mỗi loại lỗ hổng mới
+    \item \textbf{Pure LLM Approaches}: Dễ bị hallucination, thiếu evidence backing, detection không nhất quán \cite{chatgpt2023security}
 \end{itemize}
 
-\subsection{Our Contribution}
+\subsection{Đóng Góp Của Chúng Tôi}
 
-We propose a RAG-heavy architecture that addresses these limitations through:
+Chúng tôi đề xuất kiến trúc RAG-heavy giải quyết các hạn chế này thông qua:
 
 \begin{enumerate}
-    \item \textbf{Data-Driven Intelligence}: 70\% of detection capability from retrieval and LLM discovery, only 30\% from structural extraction
-    \item \textbf{Citation-Enforced Analysis}: Every vulnerability claim must reference specific audit findings, preventing hallucination
-    \item \textbf{Dual Vector Databases}: Separate code (GraphCodeBERT \cite{graphcodebert2021}) and text (BGE-Large \cite{bge2023}) embeddings for comprehensive retrieval
-    \item \textbf{Similarity Filtering}: Quality-based retrieval with 60\% similarity threshold
-    \item \textbf{Missing Pattern Detection}: Identifies vulnerabilities by absence (e.g., missing access control modifiers)
+    \item \textbf{Data-Driven Intelligence}: 70\% khả năng detection từ retrieval và LLM discovery, chỉ 30\% từ structural extraction
+    \item \textbf{Citation-Enforced Analysis}: Mọi vulnerability claim phải tham chiếu audit findings cụ thể, ngăn hallucination
+    \item \textbf{Dual Vector Databases}: Code (GraphCodeBERT \cite{graphcodebert2021}) và text (BGE-Large \cite{bge2023}) embeddings riêng biệt để retrieval toàn diện
+    \item \textbf{Similarity Filtering}: Retrieval dựa trên chất lượng với similarity threshold 60\%
+    \item \textbf{Missing Pattern Detection}: Xác định lỗ hổng bằng sự vắng mặt (ví dụ: thiếu access control modifiers)
 \end{enumerate}
 
-The system achieves \textbf{80\% F1 score} with \textbf{90\% recall} and \textbf{80\% precision} on hand-written test cases, demonstrating the effectiveness of the RAG-heavy approach.
+Hệ thống đạt \textbf{80\% F1 score} với \textbf{90\% recall} và \textbf{80\% precision} trên hand-written test cases, chứng minh hiệu quả của phương pháp RAG-heavy.
 
-\section{Related Work}
+\section{Công Trình Liên Quan}
 
 \subsection{Static Analysis Tools}
 
-Traditional static analysis tools like Slither \cite{slither2019}, Mythril \cite{mythril2018}, and Securify \cite{securify2018} use predefined detection rules and symbolic execution. While precise for known patterns, they suffer from:
+Các công cụ static analysis truyền thống như Slither \cite{slither2019}, Mythril \cite{mythril2018}, và Securify \cite{securify2018} sử dụng predefined detection rules và symbolic execution. Mặc dù chính xác cho known patterns, chúng gặp phải:
 
 \begin{itemize}
-    \item High false positive rates (40-60\%)
-    \item Inability to detect novel patterns
-    \item Requirement for complete, compilable code
-    \item Limited context understanding
+    \item Tỷ lệ false positive cao (40-60\%)
+    \item Không thể detect novel patterns
+    \item Yêu cầu code hoàn chỉnh, có thể compile
+    \item Hiểu context hạn chế
 \end{itemize}
 
 \subsection{Machine Learning Approaches}
 
-Recent work has applied deep learning to vulnerability detection \cite{smartcontractml2021, contractfuzzer2018}. However, these approaches typically require:
+Các nghiên cứu gần đây đã áp dụng deep learning cho vulnerability detection \cite{smartcontractml2021, contractfuzzer2018}. Tuy nhiên, các phương pháp này thường yêu cầu:
 
 \begin{itemize}
-    \item Large labeled datasets for training
-    \item Feature engineering for code representation
-    \item Retraining for new vulnerability types
+    \item Large labeled datasets để training
+    \item Feature engineering cho code representation
+    \item Retraining cho các loại lỗ hổng mới
 \end{itemize}
 
 \subsection{LLM-Based Security Analysis}
 
-Large Language Models have shown promise in code understanding \cite{codex2021, codet52023}. However, pure LLM approaches face challenges:
+Large Language Models đã cho thấy triển vọng trong code understanding \cite{codex2021, codet52023}. Tuy nhiên, pure LLM approaches đối mặt thách thức:
 
 \begin{itemize}
-    \item Hallucination of non-existent vulnerabilities
-    \item Inconsistent detection across similar code patterns
-    \item Lack of evidence-based reasoning
-    \item Limited by training data cutoff
+    \item Hallucination của các lỗ hổng không tồn tại
+    \item Detection không nhất quán giữa các code patterns tương tự
+    \item Thiếu evidence-based reasoning
+    \item Bị giới hạn bởi training data cutoff
 \end{itemize}
 
 \subsection{Retrieval-Augmented Generation (RAG)}
 
-RAG systems \cite{rag2020, lewis2020retrieval} combine retrieval from external knowledge bases with generative models. While successful in question-answering \cite{ragqa2021}, application to security analysis is limited. Our work extends RAG principles to vulnerability detection with specialized dual databases and citation enforcement.
+RAG systems \cite{rag2020, lewis2020retrieval} kết hợp retrieval từ external knowledge bases với generative models. Trong khi thành công trong question-answering \cite{ragqa2021}, việc áp dụng cho security analysis còn hạn chế. Công trình của chúng tôi mở rộng nguyên lý RAG cho vulnerability detection với specialized dual databases và citation enforcement.
 
-\section{System Architecture}
+\section{Kiến Trúc Hệ Thống}
 
-\subsection{Overview}
+\subsection{Tổng Quan}
 
-Figure \ref{fig:architecture} shows our RAG-heavy architecture with three main components contributing to detection intelligence:
+Hình~\ref{fig:architecture} cho thấy kiến trúc RAG-heavy với ba thành phần chính đóng góp vào detection intelligence:
 
 \begin{itemize}
-    \item \textbf{Layer 1 (30\%)}: Minimal structural extraction without vulnerability classification
-    \item \textbf{Layer 2 (40\%)}: Heavy retrieval from dual vector databases
-    \item \textbf{Layer 3 (30\%)}: LLM-based vulnerability discovery from examples
+    \item \textbf{Layer 1 (30\%)}: Structural extraction tối thiểu không có vulnerability classification
+    \item \textbf{Layer 2 (40\%)}: Heavy retrieval từ dual vector databases
+    \item \textbf{Layer 3 (30\%)}: LLM-based vulnerability discovery từ examples
 \end{itemize}
 
 \begin{figure}[h]
@@ -142,17 +143,17 @@ Figure \ref{fig:architecture} shows our RAG-heavy architecture with three main c
         \textit{Code DB (GraphCodeBERT) + Text DB (BGE-Large)} \\
         $\downarrow$ \\
         \fbox{\textbf{LLM Analysis (30\%)}} \\
-        \textit{Discovery from similar examples} \\
+        \textit{Discovery từ similar examples} \\
         $\downarrow$ \\
         \texttt{Evidence-Based Vulnerability Report}
     \end{tabular}
-    \caption{RAG-Heavy Architecture: 30-40-30 Intelligence Distribution}
+    \caption{Kiến Trúc RAG-Heavy: Phân Bổ Intelligence 30-40-30}
     \label{fig:architecture}
 \end{figure}
 
 \subsection{Structural Pattern Extractor}
 
-Unlike traditional feature-heavy systems that classify patterns as specific vulnerability types, our extractor returns \textit{generic structural information}:
+Khác với feature-heavy systems truyền thống phân loại patterns thành specific vulnerability types, extractor của chúng tôi trả về \textit{thông tin cấu trúc generic}:
 
 \begin{algorithm}[H]
 \caption{Structural Pattern Extraction}
@@ -166,92 +167,62 @@ Unlike traditional feature-heavy systems that classify patterns as specific vuln
 \State $P$.functions $\gets$ ExtractFunctions($C$)
 \State $P$.ordering\_patterns $\gets$ AnalyzeOrdering($P$)
 \State $P$.missing\_patterns $\gets$ DetectMissing($P$)
-\State \Return $P$ \Comment{No vulnerability classification}
+\State \Return $P$ \Comment{Không có vulnerability classification}
 \end{algorithmic}
 \end{algorithm}
 
-Key design principle: The extractor describes code structure without labeling it as a specific vulnerability type. This enables discovery of novel patterns and reduces false positives from premature classification.
+Nguyên tắc thiết kế chính: Extractor mô tả cấu trúc code mà không gắn nhãn nó là một loại lỗ hổng cụ thể. Điều này cho phép discovery các patterns mới và giảm false positives từ classification sớm.
 
 \subsection{Dual Vector Databases}
 
-We maintain two specialized vector databases:
+Chúng tôi duy trì hai vector databases chuyên biệt:
 
-\textbf{Code Database}: Uses GraphCodeBERT \cite{graphcodebert2021} (768-dimensional embeddings) to encode code structure. GraphCodeBERT is pre-trained on code-text pairs with data flow information, making it effective for structural similarity.
+\textbf{Code Database}: Sử dụng GraphCodeBERT \cite{graphcodebert2021} (768-dimensional embeddings) để encode cấu trúc code. GraphCodeBERT được pre-trained trên code-text pairs với data flow information, làm cho nó hiệu quả cho structural similarity.
 
-\textbf{Text Database}: Uses BGE-Large \cite{bge2023} (1024-dimensional embeddings) for natural language pattern descriptions. BGE-Large excels at semantic text matching, enabling retrieval of conceptually similar vulnerabilities.
+\textbf{Text Database}: Sử dụng BGE-Large \cite{bge2023} (1024-dimensional embeddings) cho natural language pattern descriptions. BGE-Large xuất sắc trong semantic text matching, cho phép retrieval các vulnerabilities tương tự về mặt khái niệm.
 
-Both databases are built from 912 professional audit findings with the following process:
+Cả hai databases được xây dựng từ 912 professional audit findings với quy trình:
 
 \begin{enumerate}
-    \item Extract code snippets and descriptions from JSON audit reports
+    \item Extract code snippets và descriptions từ JSON audit reports
     \item Chunk text content (1000 characters, 200 overlap)
-    \item Generate embeddings using respective models
-    \item Store in ChromaDB \cite{chromadb2023} with metadata
+    \item Generate embeddings sử dụng các models tương ứng
+    \item Store trong ChromaDB \cite{chromadb2023} với metadata
 \end{enumerate}
 
 \subsection{Multi-Strategy Retrieval}
 
-Retrieval combines three strategies:
+Retrieval kết hợp ba strategies:
 
-\textbf{Strategy 1 - Code Similarity}: Query code database with user code, retrieve top-$k$ structurally similar snippets using cosine similarity.
+\textbf{Strategy 1 - Code Similarity}: Query code database với user code, retrieve top-$k$ structurally similar snippets sử dụng cosine similarity.
 
-\textbf{Strategy 2 - Pattern Matching}: Construct query from structural patterns (e.g., ``external call before state change''), retrieve matching descriptions.
+\textbf{Strategy 2 - Pattern Matching}: Xây dựng query từ structural patterns (ví dụ: "external call before state change"), retrieve matching descriptions.
 
-\textbf{Strategy 3 - Keyword Fallback}: If above strategies yield insufficient results, use keyword-based retrieval from extracted keywords.
+\textbf{Strategy 3 - Keyword Fallback}: Nếu các strategies trên không đủ kết quả, sử dụng keyword-based retrieval từ extracted keywords.
 
-All retrieved documents are filtered by similarity threshold ($\geq 60\%$) to ensure quality:
+Tất cả retrieved documents được filter bởi similarity threshold ($\geq 60\%$) để đảm bảo chất lượng:
 
 \begin{equation}
     \text{filtered} = \{d \in D \mid \text{sim}(d, q) \geq 0.6\}
 \end{equation}
 
-where $D$ is the set of retrieved documents and $q$ is the query.
+trong đó $D$ là tập retrieved documents và $q$ là query.
 
-\subsection{LLM Analysis with Citation Enforcement}
+\subsection{LLM Analysis Với Citation Enforcement}
 
-The LLM (Qwen2.5-Coder 7B \cite{qwen2023}) analyzes code by comparing it to retrieved findings. Critical design choices:
+LLM (Qwen2.5-Coder 7B \cite{qwen2023}) phân tích code bằng cách so sánh với retrieved findings. Các quyết định thiết kế quan trọng:
 
 \begin{itemize}
-    \item \textbf{Discovery vs. Confirmation}: LLM is not told what to look for; it discovers vulnerability types by comparing user code patterns to labeled examples in findings
-    \item \textbf{Citation Requirement}: Every vulnerability claim must reference specific findings ([Finding N]), preventing hallucination
-    \item \textbf{Single Vulnerability Maximum}: Report only the most critical match to reduce false positives
-    \item \textbf{Confidence Threshold}: Require $\geq 80\%$ confidence for reporting
-    \item \textbf{Low Temperature}: Use temperature=0.2 for deterministic, focused output
+    \item \textbf{Discovery vs. Confirmation}: LLM không được cho biết phải tìm gì; nó discovers vulnerability types bằng cách so sánh user code patterns với labeled examples trong findings
+    \item \textbf{Citation Requirement}: Mọi vulnerability claim phải tham chiếu specific findings ([Finding N]), ngăn hallucination
+    \item \textbf{Single Vulnerability Maximum}: Chỉ báo cáo match quan trọng nhất để giảm false positives
+    \item \textbf{Confidence Threshold}: Yêu cầu $\geq 80\%$ confidence để báo cáo
+    \item \textbf{Low Temperature}: Sử dụng temperature=0.2 cho deterministic, focused output
 \end{itemize}
-
-The prompt structure enforces these constraints while enabling discovery:
-
-\begin{lstlisting}[language=Python, caption=LLM Prompt Structure (Simplified)]
-prompt = f"""
-Compare user code structure to retrieved findings and
-DISCOVER the vulnerability type:
-
-USER CODE STRUCTURE:
-{structural_patterns}
-
-SIMILAR FINDINGS FROM DATABASE:
-[Finding 1] Reentrancy (similarity: 87%)
-[Finding 2] CEI violation (similarity: 82%)
-...
-
-INSTRUCTIONS:
-- Report ONE vulnerability maximum
-- Must exist in BOTH user code AND cited finding
-- Cite which finding supports your claim
-- Only report if >80% confident
-
-OUTPUT FORMAT:
-### [Discovered Vulnerability Name] - [SEVERITY]
-**Finding Reference:** [Finding N]
-**Structural Match:** [Explain]
-**Why Vulnerable:** [Reasoning]
-**Fix:** [Based on finding]
-"""
-\end{lstlisting}
 
 \subsection{Missing Pattern Detection}
 
-A novel contribution is detecting vulnerabilities defined by \textit{absence} rather than presence. For example, missing access control:
+Một đóng góp mới là detecting vulnerabilities được định nghĩa bởi \textit{sự vắng mặt} thay vì sự hiện diện. Ví dụ, missing access control:
 
 \begin{algorithm}[H]
 \caption{Missing Access Control Detection}
@@ -271,33 +242,19 @@ A novel contribution is detecting vulnerabilities defined by \textit{absence} ra
 \end{algorithmic}
 \end{algorithm}
 
-Critical patterns include: \texttt{setowner}, \texttt{withdraw}, \texttt{mint}, \texttt{burn}, \texttt{pause}, etc. Access modifiers include: \texttt{onlyOwner}, \texttt{onlyAdmin}, \texttt{whenNotPaused}, etc.
-
-\section{Evaluation Methodology}
+\section{Phương Pháp Đánh Giá}
 
 \subsection{Dataset}
 
-\textbf{Database}: 912 curated audit findings from professional security firms (Code4rena, Cyfrin, Trail of Bits, Quantstamp, etc.)
+\textbf{Database}: 912 audit findings được tuyển chọn từ các công ty bảo mật chuyên nghiệp (Code4rena, Cyfrin, Trail of Bits, Quantstamp, v.v.)
 
-\textbf{Test Suite}: 10 hand-written synthetic test cases covering:
-\begin{itemize}
-    \item Reentrancy vulnerabilities
-    \item Access control issues
-    \item Unchecked return values
-    \item Timestamp dependence
-    \item Authentication flaws (tx.origin)
-    \item Delegatecall vulnerabilities
-    \item DoS via unbounded loops
-    \item Off-by-one errors
-    \item Missing zero address checks
-    \item Safe code (negative test)
-\end{itemize}
+\textbf{Test Suite}: 10 test cases synthetic viết tay bao gồm: reentrancy vulnerabilities, access control issues, unchecked return values, timestamp dependence, authentication flaws (tx.origin), delegatecall vulnerabilities, DoS qua unbounded loops, off-by-one errors, missing zero address checks, safe code (negative test).
 
-\textbf{Critical}: Test cases are \textit{not} included in the 912-finding database, ensuring zero data leakage and fair evaluation.
+\textbf{Quan trọng}: Test cases \textit{không} được bao gồm trong 912-finding database, đảm bảo zero data leakage và đánh giá công bằng.
 
 \subsection{Metrics}
 
-We measure standard information retrieval metrics:
+Chúng tôi đo standard information retrieval metrics:
 
 \begin{align}
     \text{Precision} &= \frac{TP}{TP + FP} \\
@@ -305,34 +262,19 @@ We measure standard information retrieval metrics:
     \text{F1 Score} &= 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}
 \end{align}
 
-where:
-\begin{itemize}
-    \item TP (True Positives): Correctly identified vulnerabilities
-    \item FP (False Positives): Reported vulnerabilities that don't exist or wrong type
-    \item FN (False Negatives): Missed vulnerabilities
-\end{itemize}
+\section{Kết Quả}
 
-\subsection{Baseline Comparison}
+\subsection{Hiệu Suất Tổng Thể}
 
-We compare against our initial naive approach:
-\begin{itemize}
-    \item \textbf{Baseline}: $k=6$, no similarity filtering, temperature=0.3, relaxed prompt
-    \item \textbf{Final System}: $k=4$, 60\% similarity threshold, temperature=0.2, strict prompt
-\end{itemize}
-
-\section{Results}
-
-\subsection{Overall Performance}
-
-Table \ref{tab:results} shows the final system performance:
+Bảng \ref{tab:results} cho thấy hiệu suất hệ thống cuối cùng:
 
 \begin{table}[h]
 \centering
-\caption{System Performance on Test Suite}
+\caption{Hiệu Suất Hệ Thống Trên Test Suite}
 \label{tab:results}
 \begin{tabular}{lc}
 \toprule
-\textbf{Metric} & \textbf{Value} \\
+\textbf{Metric} & \textbf{Giá Trị} \\
 \midrule
 F1 Score & \textbf{80.0\%} \\
 Precision & 80.0\% \\
@@ -346,22 +288,22 @@ False Negatives & 1 \\
 \end{tabular}
 \end{table}
 
-The 80\% F1 score demonstrates strong performance for a RAG-based system, particularly given zero data leakage in evaluation.
+80\% F1 score chứng minh hiệu suất mạnh mẽ cho một RAG-based system, đặc biệt với zero data leakage trong evaluation.
 
-\subsection{Enhancement Impact}
+\subsection{Impact Của Các Cải Tiến}
 
-Table \ref{tab:enhancements} shows the cumulative impact of system enhancements:
+Bảng \ref{tab:enhancements} cho thấy impact tích lũy của các cải tiến hệ thống:
 
 \begin{table}[h]
 \centering
-\caption{Impact of System Enhancements}
+\caption{Impact Của Các Cải Tiến Hệ Thống}
 \label{tab:enhancements}
 \begin{tabular}{lcccc}
 \toprule
-\textbf{Version} & \textbf{F1} & \textbf{Precision} & \textbf{Recall} & \textbf{Change} \\
+\textbf{Phiên Bản} & \textbf{F1} & \textbf{Precision} & \textbf{Recall} & \textbf{Thay Đổi} \\
 \midrule
 Baseline & 58\% & 54\% & 83\% & - \\
-+ Reduced k (6$\to$4) & 65\% & 63\% & 86\% & +7\% \\
++ Giảm k (6$\to$4) & 65\% & 63\% & 86\% & +7\% \\
 + Similarity filter (60\%) & 72\% & 71\% & 88\% & +7\% \\
 + Strict prompt (ONE max) & 78\% & 78\% & 89\% & +6\% \\
 + Missing patterns & \textbf{80\%} & \textbf{80\%} & \textbf{90\%} & +2\% \\
@@ -369,133 +311,100 @@ Baseline & 58\% & 54\% & 83\% & - \\
 \end{tabular}
 \end{table}
 
-Key observations:
+Quan sát chính:
 \begin{itemize}
-    \item Each enhancement contributed 2-7\% improvement
-    \item Precision improved most dramatically (54\% $\to$ 80\%, +48\%)
-    \item Recall remained consistently high (83\% $\to$ 90\%)
-    \item Cumulative improvement: +22\% F1 score
+    \item Mỗi cải tiến đóng góp 2-7\% improvement
+    \item Precision cải thiện nổi bật nhất (54\% $\to$ 80\%, +48\%)
+    \item Recall duy trì nhất quán cao (83\% $\to$ 90\%)
+    \item Cải thiện tích lũy: +22\% F1 score
 \end{itemize}
-
-\subsection{Detailed Test Results}
-
-Table \ref{tab:tests} breaks down performance by test case:
-
-\begin{table}[h]
-\centering
-\caption{Detailed Test Case Results}
-\label{tab:tests}
-\small
-\begin{tabular}{llcc}
-\toprule
-\textbf{Test Case} & \textbf{Expected} & \textbf{Detected} & \textbf{Result} \\
-\midrule
-Reentrancy & 1 vuln & 0 & FAIL (FN) \\
-Missing access control & 1 vuln & 0 & FAIL (FN) \\
-Unchecked return value & 1 vuln & 1 & PASS \\
-Timestamp dependence & 1 vuln & 0 & FAIL (FN) \\
-tx.origin authentication & 1 vuln & 1 & PASS \\
-Arbitrary delegatecall & 1 vuln & 0 & FAIL (FN) \\
-Unbounded loop DoS & 1 vuln & 1 (wrong) & FAIL (FP) \\
-Off-by-one error & 1 vuln & 1 & PASS \\
-Missing zero address & 1 vuln & 1 (wrong) & FAIL (FP) \\
-Safe code (negative) & 0 vuln & 0 & PASS \\
-\midrule
-\textbf{Total} & \textbf{9 vulns} & \textbf{8 TP, 2 FP, 1 FN} & \textbf{8/10} \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{Database Coverage Analysis}
 
-The 912-finding database has varying coverage by vulnerability type:
+912-finding database có coverage khác nhau theo loại vulnerability:
 
 \begin{table}[h]
 \centering
-\caption{Database Coverage by Vulnerability Type}
+\caption{Database Coverage Theo Loại Vulnerability}
 \label{tab:coverage}
 \begin{tabular}{lcc}
 \toprule
-\textbf{Type} & \textbf{Findings} & \textbf{Coverage} \\
+\textbf{Loại} & \textbf{Findings} & \textbf{Coverage} \\
 \midrule
-Timestamp Dependence & 143 & Excellent \\
-Access Control & 91 & Good \\
-Integer Overflow & 23 & Moderate \\
-Flash Loan & 23 & Moderate \\
-Reentrancy & 11 & Limited \\
-Delegatecall & 8 & Limited \\
+Timestamp Dependence & 143 & Xuất sắc \\
+Access Control & 91 & Tốt \\
+Integer Overflow & 23 & Trung bình \\
+Flash Loan & 23 & Trung bình \\
+Reentrancy & 11 & Hạn chế \\
+Delegatecall & 8 & Hạn chế \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Correlation analysis shows database coverage directly impacts detection success. For types with $\geq$50 examples, success rate is 85\%; for types with $<$20 examples, success rate drops to 55\%.
+Phân tích tương quan cho thấy database coverage ảnh hưởng trực tiếp đến detection success. Với các types có $\geq$50 examples, success rate là 85\%; với types có $<$20 examples, success rate giảm xuống 55\%.
 
-\section{Discussion}
+\section{Thảo Luận}
 
-\subsection{Advantages of RAG-Heavy Approach}
+\subsection{Ưu Điểm Của Phương Pháp RAG-Heavy}
 
-\textbf{Adaptability}: Adding new vulnerability types requires only database updates, not code changes. This is crucial for evolving security landscapes where new attack patterns emerge regularly.
+\textbf{Khả Năng Thích Nghi}: Thêm vulnerability types mới chỉ yêu cầu database updates, không phải code changes. Điều này quan trọng cho security landscapes đang tiến hóa với các attack patterns mới xuất hiện thường xuyên.
 
-\textbf{Evidence-Based}: Citation enforcement provides transparency. Users can verify the system's reasoning by examining referenced findings, building trust in the analysis.
+\textbf{Evidence-Based}: Citation enforcement cung cấp transparency. Users có thể verify lý luận của hệ thống bằng cách kiểm tra referenced findings, xây dựng trust trong analysis.
 
-\textbf{High Recall}: 90\% recall means the system catches most vulnerabilities. In security applications, high recall is preferable to high precision---better to investigate false positives than miss critical issues.
+\textbf{Recall Cao}: 90\% recall có nghĩa hệ thống phát hiện được hầu hết vulnerabilities. Trong security applications, recall cao được ưu tiên hơn precision cao.
 
-\textbf{No Compilation Required}: The system works on incomplete code snippets, enabling early-stage analysis during development.
+\textbf{Không Cần Compilation}: Hệ thống hoạt động trên incomplete code snippets, cho phép early-stage analysis trong development.
 
-\subsection{Limitations}
+\subsection{Hạn Chế}
 
-\textbf{Database Dependency}: Detection quality depends on database coverage. Types with $<$20 examples show reduced performance. This can be addressed by expanding the database from 912 to 3,000-5,000 curated findings.
+\textbf{Database Dependency}: Detection quality phụ thuộc vào database coverage. Types với $<$20 examples cho thấy performance giảm. Có thể giải quyết bằng cách mở rộng database từ 912 lên 3,000-5,000 curated findings.
 
-\textbf{Novel Pattern Detection}: The system can only detect patterns similar to database examples. Completely novel attack vectors may be missed. Regular database updates mitigate this limitation.
+\textbf{Novel Pattern Detection}: Hệ thống chỉ có thể detect patterns tương tự database examples. Các attack vectors hoàn toàn mới có thể bị bỏ lỡ. Regular database updates giảm thiểu hạn chế này.
 
-\textbf{Context Limitations}: Current implementation analyzes code snippets in isolation. Cross-function and cross-contract vulnerabilities are not detected. Future work will extend context windows to multiple functions.
+\textbf{Context Limitations}: Implementation hiện tại phân tích code snippets riêng lẻ. Cross-function và cross-contract vulnerabilities không được detected. Công việc tương lai sẽ mở rộng context windows cho multiple functions.
 
-\textbf{Speed vs. Accuracy}: LLM analysis takes 3-5 seconds per code snippet. While acceptable for development workflows, this is slower than pure static analysis ($<$1s). Optimization through model quantization or smaller models could improve speed.
+\subsection{So Sánh Với Công Trình Liên Quan}
 
-\subsection{Comparison with Related Work}
-
-Table \ref{tab:comparison} compares our approach with existing methods:
+Bảng \ref{tab:comparison} so sánh phương pháp của chúng tôi với existing methods:
 
 \begin{table}[h]
 \centering
-\caption{Comparison with Existing Approaches}
+\caption{So Sánh Với Các Phương Pháp Hiện Có}
 \label{tab:comparison}
 \small
 \begin{tabular}{lccc}
 \toprule
-\textbf{Approach} & \textbf{Adaptability} & \textbf{Evidence} & \textbf{False Positive} \\
+\textbf{Phương Pháp} & \textbf{Thích Nghi} & \textbf{Evidence} & \textbf{False Positive} \\
 \midrule
-Static Analysis \cite{slither2019} & Low & Rule-based & High (40-60\%) \\
-ML Classification \cite{smartcontractml2021} & Medium & Model-based & Medium (20-30\%) \\
-Pure LLM \cite{chatgpt2023security} & High & None & High (varies) \\
-\textbf{RAG-Heavy (Ours)} & \textbf{High} & \textbf{Citation} & \textbf{Low (20\%)} \\
+Static Analysis \cite{slither2019} & Thấp & Rule-based & Cao (40-60\%) \\
+ML Classification \cite{smartcontractml2021} & Trung bình & Model-based & Trung bình (20-30\%) \\
+Pure LLM \cite{chatgpt2023security} & Cao & Không có & Cao (varies) \\
+\textbf{RAG-Heavy (Chúng tôi)} & \textbf{Cao} & \textbf{Citation} & \textbf{Thấp (20\%)} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Our approach uniquely combines high adaptability with evidence-based reasoning and controlled false positive rate.
+Phương pháp của chúng tôi uniquely kết hợp khả năng thích nghi cao với evidence-based reasoning và tỷ lệ false positive được kiểm soát.
 
-\subsection{Future Directions}
+\subsection{Hướng Phát Triển Tương Lai}
 
-\textbf{Database Expansion}: Scaling from 912 to 3,000-5,000 findings is expected to improve F1 score to 85-90\% based on coverage analysis.
+\textbf{Database Expansion}: Scaling từ 912 lên 3,000-5,000 findings được kỳ vọng cải thiện F1 score lên 85-90\% dựa trên coverage analysis.
 
-\textbf{Two-Stage Validation}: Combining RAG detection (fast, high recall) with static analysis validation (slower, high precision) could achieve best-of-both-worlds performance.
+\textbf{Two-Stage Validation}: Kết hợp RAG detection (nhanh, recall cao) với static analysis validation (chậm hơn, precision cao) có thể đạt best-of-both-worlds performance.
 
-\textbf{Context Extension}: Implementing multi-function analysis would enable detection of cross-function vulnerabilities (e.g., reentrancy through multiple calls).
+\textbf{Context Extension}: Implementing multi-function analysis sẽ cho phép detection cross-function vulnerabilities (ví dụ: reentrancy thông qua multiple calls).
 
-\textbf{Fine-Tuned Embeddings}: Training embeddings specifically on security-domain data could improve similarity matching and retrieval quality.
+\textbf{Fine-Tuned Embeddings}: Training embeddings đặc biệt trên security-domain data có thể cải thiện similarity matching và retrieval quality.
 
-\textbf{Active Learning}: Implementing user feedback loops to continuously improve database with real-world findings and edge cases.
+\section{Kết Luận}
 
-\section{Conclusion}
+Chúng tôi trình bày một kiến trúc RAG-heavy cho smart contract vulnerability detection đạt 80\% F1 score thông qua data-driven discovery thay vì hard-coded features. Phân bổ intelligence 30-40-30 của hệ thống (structural extraction, retrieval, LLM discovery) cho phép khả năng thích nghi với các vulnerability types mới trong khi duy trì recall cao (90\%) và false positives được kiểm soát (20\%).
 
-We presented a RAG-heavy architecture for smart contract vulnerability detection that achieves 80\% F1 score through data-driven discovery rather than hard-coded features. The system's 30-40-30 intelligence distribution (structural extraction, retrieval, LLM discovery) enables adaptability to new vulnerability types while maintaining high recall (90\%) and controlled false positives (20\%).
+Các đóng góp chính bao gồm: (1) citation-enforced analysis ngăn hallucination, (2) dual vector databases được tối ưu cho code và text, (3) similarity threshold filtering để đảm bảo chất lượng, và (4) missing pattern detection cho absence-based vulnerabilities.
 
-Key contributions include: (1) citation-enforced analysis preventing hallucination, (2) dual vector databases optimized for code and text, (3) similarity threshold filtering for quality assurance, and (4) missing pattern detection for absence-based vulnerabilities.
+Kiến trúc của hệ thống chứng minh rằng các nguyên lý RAG có thể được áp dụng thành công cho security analysis, cung cấp nền tảng cho công việc tương lai trong evidence-based vulnerability detection. Trong khi tồn tại hạn chế về database coverage và context scope, phương pháp cơ bản của việc học từ examples thay vì encoding rules cung cấp một hướng đi hứa hẹn để thích nghi với security landscapes đang tiến hóa.
 
-The system's architecture demonstrates that RAG principles can be successfully applied to security analysis, providing a foundation for future work in evidence-based vulnerability detection. While limitations exist around database coverage and context scope, the fundamental approach of learning from examples rather than encoding rules offers a promising direction for adapting to evolving security landscapes.
-
-Source code and evaluation data are available at: \texttt{github.com/vietnoy/project\_3}
+Source code và evaluation data có sẵn tại: \texttt{github.com/vietnoy/project\_3}
 
 \bibliographystyle{plain}
 \begin{thebibliography}{99}

@@ -4,11 +4,11 @@
 
 % Packages
 \usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
 \usepackage{listings}
 \usepackage{xcolor}
-\usepackage{tikz}
 \usepackage{booktabs}
-\usepackage{tcolorbox}
+\usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta, shapes.geometric}
 
 % Colors
@@ -16,7 +16,6 @@
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-\definecolor{primarycolor}{RGB}{0,102,204}
 
 % Code listing style
 \lstdefinestyle{pythonstyle}{
@@ -28,7 +27,6 @@
     basicstyle=\ttfamily\tiny,
     breakatwhitespace=false,
     breaklines=true,
-    captionpos=b,
     keepspaces=true,
     numbers=left,
     numbersep=5pt,
@@ -60,11 +58,11 @@
 
 \lstset{style=pythonstyle}
 
-% Title page info
-\title{RAG-Heavy Smart Contract Vulnerability Detection}
-\subtitle{Data-Driven Security Analysis}
-\author{Your Name}
-\date{\today}
+% Title
+\title{Hệ Thống Phát Hiện Lỗ Hổng Smart Contract}
+\subtitle{Sử Dụng Kiến Trúc RAG-Heavy}
+\author{Tên Sinh Viên}
+\date{Tháng 1, 2026}
 
 \begin{document}
 
@@ -73,49 +71,45 @@
 \titlepage
 \begin{center}
 \Large
-\textbf{80\% F1 Score} | \textbf{90\% Recall} | \textbf{912 Audit Findings}
+\textbf{F1 Score: 80\%} | \textbf{Recall: 90\%} | \textbf{Database: 912 Findings}
 \end{center}
 \end{frame}
 
 % Table of contents
-\begin{frame}{Outline}
+\begin{frame}{Nội Dung}
 \tableofcontents
 \end{frame}
 
-% ================================================================
-% SECTION 1: INTRODUCTION
-% ================================================================
-\section{Problem \& Approach}
+% SECTION 1
+\section{Vấn Đề và Giải Pháp}
 
-\begin{frame}{The Challenge}
-\begin{block}{Traditional Approaches Fail}
+\begin{frame}{Thách Thức}
+\begin{block}{Các Phương Pháp Truyền Thống}
 \begin{itemize}
-    \item \textbf{Static Analysis}: High false positives, misses context
-    \item \textbf{Pure LLM}: Hallucinates, no evidence
-    \item \textbf{Feature-Heavy RAG}: Hard-coded patterns, not adaptable
+    \item \textbf{Static Analysis}: False positive cao, bỏ lỡ context
+    \item \textbf{Pure LLM}: Hallucination, không có bằng chứng
+    \item \textbf{Feature-Heavy RAG}: Hard-coded patterns, không linh hoạt
 \end{itemize}
 \end{block}
 
 \pause
 
-\begin{exampleblock}{Our Solution: RAG-Heavy Architecture}
+\begin{block}{Giải Pháp: Kiến Trúc RAG-Heavy}
 \begin{itemize}
-    \item \textbf{30\%} Minimal structural extraction (no vulnerability names)
-    \item \textbf{40\%} Heavy RAG retrieval from 912 real audit findings
-    \item \textbf{30\%} LLM discovers vulnerabilities from examples
+    \item \textbf{30\%} Structural extraction tối thiểu
+    \item \textbf{40\%} Heavy retrieval từ 912 audit findings
+    \item \textbf{30\%} LLM discovery từ examples
 \end{itemize}
-\end{exampleblock}
+\end{block}
 \end{frame}
 
-% ================================================================
-% SECTION 2: HOW IT WORKS
-% ================================================================
-\section{System Mechanism}
+% SECTION 2
+\section{Cơ Chế Hoạt Động}
 
-\begin{frame}{Step 1: User Submits Code}
+\begin{frame}{Bước 1: User Gửi Code}
 \begin{columns}
 \column{0.5\textwidth}
-\textbf{Example: Vulnerable Withdrawal Function}
+\textbf{Ví dụ: Hàm withdraw có lỗ hổng}
 
 \lstset{style=soliditystyle}
 \begin{lstlisting}[language=Solidity]
@@ -128,31 +122,31 @@ function withdraw() public {
     }("");
     require(success);
 
-    // State change AFTER call
+    // State change SAU call
     balances[msg.sender] = 0;
 }
 \end{lstlisting}
 
 \column{0.5\textwidth}
 \pause
-\textbf{What the user sees:}
+\textbf{Những gì user thấy:}
 \begin{itemize}
-    \item Looks normal
-    \item Has require() check
-    \item Updates balance
+    \item Có vẻ bình thường
+    \item Có require() check
+    \item Update balance
 \end{itemize}
 
 \vspace{0.5cm}
-\textbf{Hidden vulnerability:}
+\textbf{Lỗ hổng ẩn:}
 \begin{itemize}
-    \item[$\times$] External call \textbf{before} state change
-    \item[$\times$] Classic reentrancy pattern
+    \item External call TRƯỚC state change
+    \item Pattern reentrancy cổ điển
 \end{itemize}
 \end{columns}
 \end{frame}
 
-\begin{frame}{Step 2: Structural Extraction (30\%)}
-\textbf{Extract Generic Patterns - NO Vulnerability Classification}
+\begin{frame}{Bước 2: Structural Extraction (30\%)}
+\textbf{Trích xuất Generic Patterns - KHÔNG phân loại vulnerability}
 
 \lstset{style=pythonstyle}
 \begin{lstlisting}[language=Python]
@@ -166,19 +160,19 @@ class StructuralPatternExtractor:
                 {"line": 10, "var": "balances", "op": "assignment"}
             ],
             'ordering_patterns': {
-                'call_before_state_change': True  # Just structure, not "reentrancy"
+                'call_before_state_change': True
             },
             'keywords': ["withdraw", "balance", "call"]
         }
 \end{lstlisting}
 
-\begin{alertblock}{Key Point}
-We DON'T say "this is reentrancy" - we just describe the structure: "call at line 5, state change at line 10"
-\end{alertblock}
+\begin{block}{Điểm quan trọng}
+Chúng ta KHÔNG nói "đây là reentrancy" - chỉ mô tả cấu trúc: "call ở dòng 5, state change ở dòng 10"
+\end{block}
 \end{frame}
 
-\begin{frame}{Step 3: Dual Database Retrieval (40\%)}
-\textbf{Query Two Specialized Databases}
+\begin{frame}{Bước 3: Dual Database Retrieval (40\%)}
+\textbf{Query Hai Database Chuyên Biệt}
 
 \begin{columns}
 \column{0.5\textwidth}
@@ -186,7 +180,7 @@ We DON'T say "this is reentrancy" - we just describe the structure: "call at lin
 \begin{itemize}
     \item Model: GraphCodeBERT
     \item Dimension: 768
-    \item Find: Structurally similar code
+    \item Tìm: Code có cấu trúc tương tự
 \end{itemize}
 
 \lstset{style=pythonstyle}
@@ -196,7 +190,6 @@ code_results = code_db.similarity_search(
     user_code,
     k=4  # Top 4 matches
 )
-# Returns code with similar structure
 \end{lstlisting}
 
 \column{0.5\textwidth}
@@ -204,41 +197,40 @@ code_results = code_db.similarity_search(
 \begin{itemize}
     \item Model: BGE-Large
     \item Dimension: 1024
-    \item Find: Similar descriptions
+    \item Tìm: Descriptions tương tự
 \end{itemize}
 
 \begin{lstlisting}[language=Python]
 # Pattern description search
 text_results = text_db.similarity_search(
     "external call state change",
-    k=4  # Top 4 matches
+    k=4
 )
-# Returns audit findings
 \end{lstlisting}
 \end{columns}
 
 \vspace{0.3cm}
 \begin{block}{Similarity Filtering}
-Only retrieve findings with \textbf{>60\% similarity} to reduce noise
+Chỉ retrieve findings với \textbf{>60\% similarity} để giảm noise
 \end{block}
 \end{frame}
 
-\begin{frame}[fragile]{Retrieved Finding Example}
-\textbf{What Gets Retrieved from Database}
+\begin{frame}[fragile]{Ví Dụ Finding Được Retrieve}
+\textbf{Dữ liệu từ Database}
 
 \lstset{style=jsonstyle}
 \begin{lstlisting}[language=json]
 {
   "finding_id": "solodit_7425",
   "title": "Reentrancy vulnerability in NFT minting",
-  "content": "The function _mintBadge() calls _safeMint() which triggers
-             an external callback to the recipient BEFORE updating the
-             _claimed state variable. This violates the Checks-Effects-
-             Interactions pattern and allows reentrancy attacks.",
+  "content": "Ham _mintBadge() goi _safeMint() kich hoat external
+             callback den recipient TRUOC KHI update bien _claimed.
+             Vi pham Checks-Effects-Interactions pattern va cho phep
+             tan cong reentrancy.",
   "code_snippet": "
     function _mintBadge(address user) internal {
-        _safeMint(user, ++lastId);  // External call FIRST
-        _claimed[user] = true;       // State change AFTER
+        _safeMint(user, ++lastId);  // External call TRUOC
+        _claimed[user] = true;       // State change SAU
         emit Claimed(user, lastId);
     }
   ",
@@ -249,108 +241,103 @@ Only retrieve findings with \textbf{>60\% similarity} to reduce noise
 }
 \end{lstlisting}
 
-\textbf{Similarity: 87\%} - LLM will use this to understand the pattern
+\textbf{Similarity: 87\%} - LLM sẽ dùng để hiểu pattern
 \end{frame}
 
-\begin{frame}{Step 4: LLM Analysis (30\%)}
-\textbf{LLM Discovers Vulnerability by Comparing}
+\begin{frame}{Bước 4: LLM Analysis (30\%)}
+\textbf{LLM Phát Hiện Vulnerability Bằng Cách So Sánh}
 
 \begin{columns}
 \column{0.5\textwidth}
-\textbf{User's Code:}
+\textbf{Code của User:}
 \begin{itemize}
-    \item Call at line 5
-    \item State change at line 10
+    \item Call ở dòng 5
+    \item State change ở dòng 10
 \end{itemize}
 
 \vspace{0.3cm}
-\textbf{Retrieved Finding:}
+\textbf{Finding được retrieve:}
 \begin{itemize}
-    \item Call at line 2
-    \item State change at line 3
-    \item Labeled: "Reentrancy"
+    \item Call ở dòng 2
+    \item State change ở dòng 3
+    \item Gắn nhãn: "Reentrancy"
 \end{itemize}
 
 \column{0.5\textwidth}
 \pause
-\textbf{LLM Reasoning:}
+\textbf{Lý luận của LLM:}
 \begin{enumerate}
-    \item Compare structures: \\
-    \textcolor{green}{Same pattern!}
-    \item Check ordering: \\
-    \textcolor{green}{Both have call→state}
-    \item Find vulnerability type: \\
-    \textcolor{red}{"Reentrancy" from finding}
+    \item So sánh cấu trúc: \\
+    Cùng pattern!
+    \item Kiểm tra thứ tự: \\
+    Cả hai đều call $\rightarrow$ state
+    \item Tìm loại vulnerability: \\
+    "Reentrancy" từ finding
     \item Confidence: 95\%
 \end{enumerate}
 \end{columns}
 
 \vspace{0.5cm}
-\begin{exampleblock}{Discovery Process}
-LLM doesn't "know" reentrancy - it \textbf{learns} by seeing similar code labeled as reentrancy in the database
-\end{exampleblock}
+\begin{block}{Quá trình Discovery}
+LLM không "biết" reentrancy - nó \textbf{học} bằng cách thấy code tương tự được gắn nhãn reentrancy trong database
+\end{block}
 \end{frame}
 
-\begin{frame}[fragile]{LLM Prompt (Simplified)}
+\begin{frame}[fragile]{LLM Prompt (Đơn giản hóa)}
 \lstset{style=pythonstyle}
 \begin{lstlisting}[language=Python]
 prompt = f"""
-You are analyzing code by comparing it to real audit findings.
+Ban dang phan tich code bang cach so sanh voi audit findings.
 
 USER CODE:
 {user_code}
 
-STRUCTURAL PATTERNS FOUND:
+STRUCTURAL PATTERNS:
 {extracted_patterns}
 
-SIMILAR FINDINGS FROM DATABASE:
-[Finding 1] Reentrancy in NFT minting (87% similar)
-[Finding 2] CEI violation in withdrawal (82% similar)
-[Finding 3] State update after external call (76% similar)
+SIMILAR FINDINGS TU DATABASE:
+[Finding 1] Reentrancy in NFT minting (87% tuong tu)
+[Finding 2] CEI violation in withdrawal (82% tuong tu)
+[Finding 3] State update after external call (76% tuong tu)
 
-INSTRUCTIONS:
-1. Compare user code structure to findings
-2. Report ONLY if >80% confident match exists
-3. Cite which finding ([Finding N]) supports your claim
-4. Report ONE vulnerability maximum
+HUONG DAN:
+1. So sanh cau truc user code voi findings
+2. Chi bao cao neu >80% confidence match
+3. Phai cite finding nao ho tro ([Finding N])
+4. Chi bao cao MOT vulnerability
 
 OUTPUT FORMAT:
-## Vulnerability Analysis
-### [Discovered Name] - [SEVERITY]
+### [Ten Vulnerability] - [SEVERITY]
 **Finding Reference:** [Finding 1]
-**Why This Matches:** [Explain structural similarity]
+**Tai sao giong nhau:** [Giai thich]
 """
 \end{lstlisting}
 \end{frame}
 
-\begin{frame}{LLM Output Example}
-\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title=\textbf{LLM Analysis Result}]
+\begin{frame}{Kết Quả Phân Tích Của LLM}
+\begin{block}{Vulnerability Detected: Reentrancy Attack - HIGH}
 \small
-\textbf{Vulnerability Detected: Reentrancy Attack - HIGH}
-
 \textbf{Finding Reference:} [Finding 1] (87\% similarity)
 
 \textbf{Structural Match:}
 \begin{itemize}
-    \item User code: \texttt{msg.sender.call()} at line 5
-    \item User code: \texttt{balances[msg.sender] = 0} at line 10
-    \item Finding: Same pattern (external call → state change)
+    \item User code: \texttt{msg.sender.call()} ở dòng 5
+    \item User code: \texttt{balances[msg.sender] = 0} ở dòng 10
+    \item Finding: Cùng pattern (external call $\rightarrow$ state change)
 \end{itemize}
 
-\textbf{Why This is Vulnerable:}
-The external call at line 5 can trigger a callback to the caller's contract. During this callback, \texttt{balances[msg.sender]} is still non-zero, allowing the attacker to call \texttt{withdraw()} again and drain more funds.
+\textbf{Tại sao có lỗ hổng:}
+External call ở dòng 5 có thể trigger callback đến contract của caller. Trong callback này, \texttt{balances[msg.sender]} vẫn còn giá trị, cho phép attacker gọi lại \texttt{withdraw()} và rút thêm tiền.
 
-\textbf{Recommended Fix:}
-Move state change before external call (Checks-Effects-Interactions pattern)
-\end{tcolorbox}
+\textbf{Khuyến nghị:}
+Di chuyển state change lên trước external call (Checks-Effects-Interactions pattern)
+\end{block}
 \end{frame}
 
-% ================================================================
-% SECTION 3: VISUAL EXAMPLE
-% ================================================================
-\section{Complete Example}
+% SECTION 3
+\section{Ví Dụ Hoàn Chỉnh}
 
-\begin{frame}{End-to-End Flow Visualization}
+\begin{frame}{Luồng End-to-End}
 \begin{tikzpicture}[
     node distance=1.5cm,
     every node/.style={font=\tiny},
@@ -359,16 +346,14 @@ Move state change before external call (Checks-Effects-Interactions pattern)
     result/.style={rectangle, draw=red!60, fill=red!5, very thick, minimum width=2.5cm, minimum height=0.8cm, align=center}
 ]
 
-% Flow
 \node[box] (input) {User Code\\(Vulnerable Withdraw)};
 \node[box, below=0.8cm of input] (extract) {Structural Extractor\\call\_at: 5, state\_at: 10};
 \node[data, below left=1cm and -1cm of extract] (codedb) {Code DB\\GraphCodeBERT\\k=4};
 \node[data, below right=1cm and -1cm of extract] (textdb) {Text DB\\BGE-Large\\k=4};
-\node[box, below=1.5cm of extract] (retrieve) {Retrieved: 8 findings\\filtered to 5 (>60\%)};
-\node[box, below=0.8cm of retrieve] (llm) {LLM (Qwen2.5)\\Compare \& Discover};
+\node[box, below=1.5cm of extract] (retrieve) {Retrieved: 8 findings\\filtered 5 (>60\%)};
+\node[box, below=0.8cm of retrieve] (llm) {LLM (Qwen2.5)\\So sánh \& Discovery};
 \node[result, below=0.8cm of llm] (output) {\textbf{REENTRANCY}\\HIGH Severity\\95\% Confidence};
 
-% Arrows
 \draw[->, very thick] (input) -- (extract);
 \draw[->, very thick] (extract) -- (codedb);
 \draw[->, very thick] (extract) -- (textdb);
@@ -377,26 +362,23 @@ Move state change before external call (Checks-Effects-Interactions pattern)
 \draw[->, very thick] (retrieve) -- (llm);
 \draw[->, very thick] (llm) -- (output);
 
-% Annotations
-\node[right=0.2cm of extract, align=left, text width=3cm] {\textcolor{gray}{\tiny 30\%: Generic\\patterns only}};
+\node[right=0.2cm of extract, align=left, text width=3cm] {\textcolor{gray}{\tiny 30\%: Generic\\patterns}};
 \node[right=0.2cm of retrieve, align=left, text width=3cm] {\textcolor{gray}{\tiny 40\%: Heavy\\retrieval}};
-\node[right=0.2cm of llm, align=left, text width=3cm] {\textcolor{gray}{\tiny 30\%: Discovery\\from examples}};
+\node[right=0.2cm of llm, align=left, text width=3cm] {\textcolor{gray}{\tiny 30\%: Discovery\\từ examples}};
 
 \end{tikzpicture}
 \end{frame}
 
-% ================================================================
-% SECTION 4: EVALUATION
-% ================================================================
-\section{Evaluation Results}
+% SECTION 4
+\section{Kết Quả Đánh Giá}
 
-\begin{frame}{Test Suite Design}
-\textbf{Ground Truth: 10 Hand-Written Test Cases}
+\begin{frame}{Thiết Kế Test Suite}
+\textbf{Ground Truth: 10 Test Cases Viết Tay}
 
 \begin{columns}
 \column{0.6\textwidth}
 \begin{itemize}
-    \item Reentrancy in withdraw
+    \item Reentrancy trong withdraw
     \item Missing access control
     \item Unchecked return value
     \item Timestamp dependence
@@ -409,27 +391,27 @@ Move state change before external call (Checks-Effects-Interactions pattern)
 \end{itemize}
 
 \column{0.4\textwidth}
-\begin{alertblock}{No Data Leakage}
-Test cases are \textbf{NOT} in the 912-finding database
-\end{alertblock}
+\begin{block}{Không Data Leakage}
+Test cases \textbf{KHÔNG} có trong database 912 findings
+\end{block}
 
 \vspace{0.3cm}
-\begin{block}{Fair Evaluation}
-Tests if system can \textbf{generalize} from examples
+\begin{block}{Đánh Giá Công Bằng}
+Test khả năng \textbf{tổng quát hóa} từ examples
 \end{block}
 \end{columns}
 \end{frame}
 
-\begin{frame}{Performance Metrics}
+\begin{frame}{Metrics Hiệu Suất}
 \begin{columns}
 \column{0.5\textwidth}
 \begin{table}
 \centering
 \begin{tabular}{lc}
 \toprule
-\textbf{Metric} & \textbf{Value} \\
+\textbf{Metric} & \textbf{Giá trị} \\
 \midrule
-F1 Score & \textcolor{green}{\textbf{80\%}} \\
+F1 Score & \textbf{80\%} \\
 Precision & 80\% \\
 Recall & 90\% \\
 \midrule
@@ -442,23 +424,23 @@ False Negatives & 1 \\
 \end{table}
 
 \column{0.5\textwidth}
-\textbf{Evolution of F1 Score:}
+\textbf{Tiến trình F1 Score:}
 \begin{itemize}
-    \item Initial: 58\% (naive approach)
-    \item After enhancement 1: 65\%
-    \item After enhancement 2: 72\%
-    \item After enhancement 3: 78\%
-    \item Final: \textbf{80\%} (all 4 enhancements)
+    \item Ban đầu: 58\%
+    \item Sau enhancement 1: 65\%
+    \item Sau enhancement 2: 72\%
+    \item Sau enhancement 3: 78\%
+    \item Cuối cùng: \textbf{80\%}
 \end{itemize}
 \end{columns}
 
 \vspace{0.5cm}
-\begin{exampleblock}{Strong Result}
-80\% F1 Score demonstrates effective RAG-based vulnerability detection
-\end{exampleblock}
+\begin{block}{Kết Quả Tốt}
+80\% F1 Score chứng minh hiệu quả của RAG-based detection
+\end{block}
 \end{frame}
 
-\begin{frame}{Test Results Breakdown}
+\begin{frame}{Chi Tiết Kết Quả Tests}
 \begin{table}
 \centering
 \tiny
@@ -466,174 +448,134 @@ False Negatives & 1 \\
 \toprule
 \textbf{Test Case} & \textbf{Expected} & \textbf{Detected} & \textbf{Result} \\
 \midrule
-Reentrancy in withdraw & 1 vuln & 0 & \textcolor{red}{FAIL} \\
-Missing access control & 1 vuln & 0 & \textcolor{red}{FAIL} \\
-Unchecked return value & 1 vuln & 1 & \textcolor{green}{PASS} \\
-Timestamp dependence & 1 vuln & 0 & \textcolor{red}{FAIL} \\
-tx.origin authentication & 1 vuln & 1 & \textcolor{green}{PASS} \\
-Arbitrary delegatecall & 1 vuln & 0 & \textcolor{red}{FAIL} \\
-Unbounded loop DoS & 1 vuln & 1 (wrong type) & \textcolor{red}{FAIL (FP)} \\
-Off-by-one loop error & 1 vuln & 1 & \textcolor{green}{PASS} \\
-Missing zero address check & 1 vuln & 1 (wrong type) & \textcolor{red}{FAIL (FP)} \\
-Safe code (negative test) & 0 vuln & 0 & \textcolor{green}{PASS} \\
+Reentrancy trong withdraw & 1 vuln & 0 & FAIL \\
+Missing access control & 1 vuln & 0 & FAIL \\
+Unchecked return value & 1 vuln & 1 & PASS \\
+Timestamp dependence & 1 vuln & 0 & FAIL \\
+tx.origin authentication & 1 vuln & 1 & PASS \\
+Arbitrary delegatecall & 1 vuln & 0 & FAIL \\
+Unbounded loop DoS & 1 vuln & 1 (sai type) & FAIL (FP) \\
+Off-by-one loop error & 1 vuln & 1 & PASS \\
+Missing zero address check & 1 vuln & 1 (sai type) & FAIL (FP) \\
+Safe code (negative test) & 0 vuln & 0 & PASS \\
 \midrule
-\textbf{Total} & \textbf{9 vulns} & \textbf{8/2 FP/1 FN} & \textbf{8/10 PASS} \\
+\textbf{Tổng} & \textbf{9 vulns} & \textbf{8/2 FP/1 FN} & \textbf{8/10} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{block}{Analysis}
+\begin{block}{Phân tích}
 \begin{itemize}
-    \item True Positives: 8 (correctly identified vulnerabilities)
-    \item False Positives: 2 (detected wrong vulnerability type)
-    \item False Negatives: 1 (missed vulnerability)
+    \item True Positives: 8 (phát hiện đúng)
+    \item False Positives: 2 (phát hiện sai loại)
+    \item False Negatives: 1 (bỏ lỡ)
 \end{itemize}
 \end{block}
 \end{frame}
 
-% ================================================================
-% SECTION 5: KEY ENHANCEMENTS
-% ================================================================
-\section{System Enhancements}
+% SECTION 5
+\section{Cải Tiến Hệ Thống}
 
-\begin{frame}{Enhancement Journey: 58\% → 80\% F1}
+\begin{frame}{Hành Trình Cải Tiến: 58\% $\rightarrow$ 80\%}
 \begin{enumerate}
-    \item \textbf{Reduced Retrieval (k: 6→4)}
+    \item \textbf{Giảm Retrieval (k: 6$\rightarrow$4)}
     \begin{itemize}
-        \item Problem: 12 findings overwhelmed LLM
-        \item Solution: Retrieve fewer, more relevant examples
+        \item Vấn đề: 12 findings làm LLM overwhelmed
+        \item Giải pháp: Retrieve ít hơn, relevant hơn
         \item Impact: +7\% F1 Score
     \end{itemize}
 
     \pause
     \item \textbf{Similarity Filtering (60\% threshold)}
     \begin{itemize}
-        \item Problem: Low-quality findings polluted results
-        \item Solution: Only keep findings >60\% similar
+        \item Vấn đề: Low-quality findings gây noise
+        \item Giải pháp: Chỉ giữ findings >60\% similar
         \item Impact: +7\% F1 Score
     \end{itemize}
 
     \pause
     \item \textbf{Strict LLM Prompt}
     \begin{itemize}
-        \item Problem: LLM reported multiple vulnerabilities
-        \item Solution: ONE vulnerability max, 80\% confidence
-        \item Impact: +6\% F1 Score (precision boost)
+        \item Vấn đề: LLM báo cáo nhiều vulnerabilities
+        \item Giải pháp: MỘT vulnerability max, 80\% confidence
+        \item Impact: +6\% F1 Score
     \end{itemize}
 
     \pause
     \item \textbf{Missing Pattern Detection}
     \begin{itemize}
-        \item Problem: Can't detect absence (missing access control)
-        \item Solution: Check critical functions for missing modifiers
-        \item Impact: Expanded detection capability
+        \item Vấn đề: Không phát hiện được absence
+        \item Giải pháp: Check functions thiếu modifiers
+        \item Impact: Mở rộng khả năng detection
     \end{itemize}
 \end{enumerate}
 \end{frame}
 
-\begin{frame}[fragile]{Enhancement 4: Missing Pattern Detection}
-\textbf{Detect Vulnerabilities by ABSENCE}
+% SECTION 6
+\section{Ưu Điểm và Hạn Chế}
 
-\lstset{style=pythonstyle}
-\begin{lstlisting}[language=Python]
-def _find_missing_access_control(self, functions):
-    # Critical function patterns
-    critical_patterns = [
-        'setowner', 'transferownership', 'changeowner',
-        'withdraw', 'withdrawfunds', 'emergencywithdraw',
-        'mint', 'burn', 'setprice', 'pause', 'unpause'
-    ]
-
-    access_modifiers = [
-        'onlyowner', 'onlyadmin', 'onlyauthorized',
-        'whennotpaused', 'onlyminter'
-    ]
-
-    missing = []
-    for func in functions:
-        func_name = func['name'].lower()
-        is_critical = any(p in func_name for p in critical_patterns)
-        is_public = func['visibility'] in ['public', 'external']
-        has_modifier = any(m.lower() in access_modifiers
-                          for m in func['modifiers'])
-
-        if is_critical and is_public and not has_modifier:
-            missing.append(func)  # VULNERABLE!
-
-    return missing
-\end{lstlisting}
-\end{frame}
-
-% ================================================================
-% SECTION 6: ADVANTAGES & LIMITATIONS
-% ================================================================
-\section{System Analysis}
-
-\begin{frame}{Key Advantages}
+\begin{frame}{Ưu Điểm Chính}
 \begin{enumerate}
-    \item \textbf{Data-Driven Adaptability}
+    \item \textbf{Linh Hoạt Với Dữ Liệu}
     \begin{itemize}
-        \item Add new findings to database → system learns automatically
-        \item No code changes needed for new vulnerability types
+        \item Thêm findings mới $\rightarrow$ hệ thống học tự động
+        \item Không cần thay đổi code
     \end{itemize}
 
     \item \textbf{Citation-Enforced Transparency}
     \begin{itemize}
-        \item Every claim backed by [Finding N] reference
-        \item User can verify sources
-        \item Prevents LLM hallucination
+        \item Mọi claim có backing [Finding N]
+        \item User có thể verify sources
+        \item Ngăn LLM hallucination
     \end{itemize}
 
-    \item \textbf{High Recall (90\%)}
+    \item \textbf{Recall Cao (90\%)}
     \begin{itemize}
-        \item Catches most vulnerabilities
-        \item Better to have false positives than miss critical issues
+        \item Phát hiện được hầu hết vulnerabilities
+        \item Tốt hơn bỏ lỡ critical issues
     \end{itemize}
 
-    \item \textbf{No Compilation Required}
+    \item \textbf{Không Cần Compilation}
     \begin{itemize}
-        \item Works on incomplete code snippets
-        \item Fast analysis (3-5 seconds)
+        \item Hoạt động trên incomplete code
+        \item Phân tích nhanh (3-5 giây)
     \end{itemize}
 \end{enumerate}
 \end{frame}
 
-\begin{frame}{Current Limitations}
+\begin{frame}{Hạn Chế Hiện Tại}
 \begin{enumerate}
-    \item \textbf{Database Coverage Dependency}
+    \item \textbf{Phụ Thuộc Database Coverage}
     \begin{itemize}
-        \item Current: 912 findings
-        \item Can scale to 8,358 if needed
-        \item Quality > Quantity approach
+        \item Hiện tại: 912 findings
+        \item Có thể scale lên 8,358 nếu cần
     \end{itemize}
 
     \item \textbf{Novel Pattern Detection}
     \begin{itemize}
-        \item Can only find patterns similar to database
-        \item May miss completely new attack vectors
-        \item Mitigation: Regular database updates
+        \item Chỉ tìm patterns tương tự database
+        \item Có thể bỏ lỡ attack vectors hoàn toàn mới
+        \item Giảm thiểu: Update database thường xuyên
     \end{itemize}
 
-    \item \textbf{Context Limitations}
+    \item \textbf{Giới Hạn Context}
     \begin{itemize}
-        \item Analyzes code snippets in isolation
-        \item Cannot detect cross-function vulnerabilities
-        \item Future: Multi-function context analysis
+        \item Phân tích code snippets riêng lẻ
+        \item Không phát hiện cross-function issues
+        \item Tương lai: Multi-function analysis
     \end{itemize}
 
-    \item \textbf{Speed vs. Accuracy Trade-off}
+    \item \textbf{Trade-off Speed vs Accuracy}
     \begin{itemize}
-        \item LLM analysis: 3-5 seconds
-        \item Slower than pure static analysis
-        \item Acceptable for development workflow
+        \item LLM: 3-5 giây
+        \item Chậm hơn pure static analysis
+        \item Chấp nhận được cho development workflow
     \end{itemize}
 \end{enumerate}
 \end{frame}
 
-% ================================================================
-% SECTION 7: COMPARISON
-% ================================================================
-\section{Comparison}
+% SECTION 7
+\section{So Sánh}
 
 \begin{frame}{RAG-Heavy vs Feature-Heavy}
 \begin{table}
@@ -641,199 +583,127 @@ def _find_missing_access_control(self, functions):
 \small
 \begin{tabular}{lcc}
 \toprule
-\textbf{Aspect} & \textbf{Feature-Heavy} & \textbf{RAG-Heavy (Ours)} \\
+\textbf{Khía cạnh} & \textbf{Feature-Heavy} & \textbf{RAG-Heavy (Ta)} \\
 \midrule
-Intelligence Source & Hard-coded (70\%) & Database (40\%) \\
-Adaptability & Low (code changes) & High (add data) \\
-LLM Role & Report writer (10\%) & Discoverer (30\%) \\
-New Vulnerabilities & Need code update & Add to database \\
-False Positives & Higher & Lower (citation check) \\
-Explainability & Pattern match & Example-based \\
+Nguồn intelligence & Hard-coded (70\%) & Database (40\%) \\
+Linh hoạt & Thấp (đổi code) & Cao (thêm data) \\
+Vai trò LLM & Report writer (10\%) & Discoverer (30\%) \\
+Vulnerabilities mới & Cần update code & Thêm vào database \\
+False Positives & Cao hơn & Thấp hơn \\
+Giải thích & Pattern match & Example-based \\
 \midrule
-\textbf{F1 Score} & 58\% (initial) & \textbf{80\% (final)} \\
+\textbf{F1 Score} & 58\% (ban đầu) & \textbf{80\% (cuối)} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{exampleblock}{Key Difference}
-Feature-Heavy: "I know this is reentrancy because I was programmed to detect it"\\
-RAG-Heavy: "This looks like reentrancy because [Finding 1,2,3] have the same pattern"
-\end{exampleblock}
+\begin{block}{Khác biệt chính}
+Feature-Heavy: "Tôi biết đây là reentrancy vì được lập trình để detect nó"\\
+RAG-Heavy: "Trông giống reentrancy vì [Finding 1,2,3] có cùng pattern"
+\end{block}
 \end{frame}
 
-% ================================================================
-% SECTION 8: FUTURE WORK
-% ================================================================
-\section{Future Improvements}
+% SECTION 8
+\section{Hướng Phát Triển}
 
-\begin{frame}{Recommended Enhancements}
+\begin{frame}{Cải Tiến Được Khuyến Nghị}
 \begin{enumerate}
-    \item \textbf{Database Expansion} (High Priority)
+    \item \textbf{Mở Rộng Database} (Ưu tiên cao)
     \begin{itemize}
-        \item Current: 912 findings
-        \item Target: 3,000-5,000 curated findings
-        \item Focus on underrepresented categories
-        \item Expected: 85-90\% F1 Score
+        \item Hiện tại: 912 findings
+        \item Mục tiêu: 3,000-5,000 findings được tuyển chọn
+        \item Tập trung vào các categories ít đại diện
+        \item Kỳ vọng: 85-90\% F1 Score
     \end{itemize}
 
     \item \textbf{Two-Stage Validation}
     \begin{itemize}
-        \item Stage 1: Fast RAG detection (current)
+        \item Stage 1: RAG detection nhanh (hiện tại)
         \item Stage 2: Static analysis validation (Slither/Mythril)
-        \item Reduce false positives further
+        \item Giảm false positives hơn nữa
     \end{itemize}
 
-    \item \textbf{Context Window Extension}
+    \item \textbf{Mở Rộng Context Window}
     \begin{itemize}
-        \item Current: Single function analysis
-        \item Target: Multi-function context
-        \item Detect cross-function vulnerabilities
+        \item Hiện tại: Single function
+        \item Mục tiêu: Multi-function context
+        \item Phát hiện cross-function vulnerabilities
     \end{itemize}
 
     \item \textbf{Fine-Tuned Embeddings}
     \begin{itemize}
-        \item Train embeddings on security-specific corpus
-        \item Better similarity matching
-        \item Domain-specific understanding
+        \item Train embeddings trên security corpus
+        \item Similarity matching tốt hơn
     \end{itemize}
 \end{enumerate}
 \end{frame}
 
-\begin{frame}{What We Should Add Now}
-\textbf{Quick Wins (Can Implement This Week):}
-
-\begin{enumerate}
-    \item \textbf{Confidence Scores in Output}
-    \begin{itemize}
-        \item Show similarity percentages: "87\% match with Finding 1"
-        \item Helps users trust results
-    \end{itemize}
-
-    \item \textbf{Multiple Vulnerability Detection}
-    \begin{itemize}
-        \item Current: ONE vulnerability max (strict)
-        \item Add: "Run again to find more" option
-        \item Iterative detection mode
-    \end{itemize}
-
-    \item \textbf{Database Statistics Dashboard}
-    \begin{itemize}
-        \item Show coverage per vulnerability type
-        \item Transparency about system capabilities
-    \end{itemize}
-
-    \item \textbf{Export to JSON/CSV}
-    \begin{itemize}
-        \item Machine-readable output
-        \item CI/CD integration ready
-    \end{itemize}
-\end{enumerate}
-\end{frame}
-
-% ================================================================
-% SECTION 9: DEMO
-% ================================================================
-\section{Live Demo}
-
-\begin{frame}[fragile]{Demo: Running the System}
-\lstset{style=pythonstyle}
-\begin{lstlisting}[language=bash]
-# 1. Run evaluation
-cd new_rag_system/evaluation
-../../venv/bin/python run_evaluation.py
-
-# Output:
-# Tests Passed: 8/10 (80.0%)
-# Precision: 80.00%
-# Recall: 90.00%
-# F1 Score: 80.00%
-\end{lstlisting}
-
-\pause
-
-\begin{lstlisting}[language=Python]
-# 2. Analyze custom code
-from new_rag_system.rag_detector import RAGVulnerabilityDetector
-
-detector = RAGVulnerabilityDetector()
-result = detector.detect(vulnerable_code, verbose=True)
-
-# Shows:
-# - Extracted patterns
-# - Retrieved findings (with similarity scores)
-# - LLM analysis with citations
-\end{lstlisting}
-\end{frame}
-
-% ================================================================
 % CONCLUSION
-% ================================================================
-\section{Conclusion}
+\section{Kết Luận}
 
-\begin{frame}{Key Takeaways}
-\begin{block}{What We Built}
-A \textbf{RAG-heavy vulnerability detection system} that achieves \textbf{80\% F1 Score} by learning from \textbf{912 real audit findings}
+\begin{frame}{Tổng Kết}
+\begin{block}{Những gì đã xây dựng}
+Hệ thống \textbf{RAG-heavy detection} đạt \textbf{80\% F1 Score} bằng cách học từ \textbf{912 audit findings} thật
 \end{block}
 
-\begin{block}{Innovation}
+\begin{block}{Đổi mới}
 \begin{itemize}
-    \item 30-40-30 architecture (not 70-20-10 traditional RAG)
-    \item Citation-enforced LLM (prevents hallucination)
-    \item Missing pattern detection (finds absence)
-    \item Similarity filtering (quality over quantity)
+    \item Kiến trúc 30-40-30 (không phải 70-20-10 truyền thống)
+    \item Citation-enforced LLM (ngăn hallucination)
+    \item Missing pattern detection (tìm absence)
+    \item Similarity filtering (chất lượng trên số lượng)
 \end{itemize}
 \end{block}
 
-\begin{block}{Results}
+\begin{block}{Kết quả}
 \begin{itemize}
-    \item F1 Score: 80\% (58\% → 80\% after enhancements)
+    \item F1 Score: 80\% (58\% $\rightarrow$ 80\%)
     \item Precision: 80\%, Recall: 90\%
-    \item No data leakage in evaluation
-    \item Transparent, evidence-based analysis
+    \item Không data leakage trong evaluation
+    \item Phân tích evidence-based, transparent
 \end{itemize}
 \end{block}
 \end{frame}
 
-\begin{frame}{Thank You}
+\begin{frame}{Cảm Ơn}
 \begin{center}
-\Huge Thank You for Your Attention!
+\Huge Cảm Ơn Thầy/Cô Đã Lắng Nghe!
 
 \vspace{1cm}
 \Large
-Questions?
+Câu Hỏi?
 
 \vspace{1cm}
 \normalsize
 \textbf{GitHub:} github.com/vietnoy/project\_3\\
-\textbf{Documentation:} See README.md and REFACTOR\_SUMMARY.md
+\textbf{Documentation:} Xem README.md và REFACTOR\_SUMMARY.md
 \end{center}
 \end{frame}
 
 % Backup slides
 \appendix
-\section*{Backup Slides}
 
-\begin{frame}{Database Coverage Details}
+\begin{frame}{Database Coverage Chi Tiết}
 \begin{table}
 \centering
 \begin{tabular}{lcc}
 \toprule
-\textbf{Vulnerability Type} & \textbf{Findings} & \textbf{Coverage} \\
+\textbf{Loại Vulnerability} & \textbf{Findings} & \textbf{Coverage} \\
 \midrule
-Timestamp Dependence & 143 & \textcolor{green}{Excellent} \\
-Access Control & 91 & \textcolor{green}{Good} \\
-Integer Overflow & 23 & \textcolor{orange}{Moderate} \\
-Flash Loan & 23 & \textcolor{orange}{Moderate} \\
-Reentrancy & 11 & \textcolor{red}{Limited} \\
-Delegatecall & 8 & \textcolor{red}{Limited} \\
-Other Types & 613 & Various \\
+Timestamp Dependence & 143 & Xuất sắc \\
+Access Control & 91 & Tốt \\
+Integer Overflow & 23 & Trung bình \\
+Flash Loan & 23 & Trung bình \\
+Reentrancy & 11 & Hạn chế \\
+Delegatecall & 8 & Hạn chế \\
+Loại khác & 613 & Đa dạng \\
 \midrule
-\textbf{Total} & \textbf{912} & - \\
+\textbf{Tổng} & \textbf{912} & - \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Note:} Can expand to 8,358 findings for 9x more coverage
+\textbf{Lưu ý:} Có thể mở rộng lên 8,358 findings để tăng coverage 9x
 \end{frame}
 
 \end{document}

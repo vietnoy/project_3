@@ -215,6 +215,72 @@ Chỉ retrieve findings với \textbf{>60\% similarity} để giảm noise
 \end{block}
 \end{frame}
 
+\begin{frame}{Bước 3a: Tạo Text Query Từ Patterns}
+\textbf{Từ Structural Patterns → Text Query}
+
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{Input Patterns:}
+\begin{itemize}
+    \item \texttt{external\_calls}: [line 5]
+    \item \texttt{state\_changes}: [line 10]
+    \item \texttt{ordering}: call before state
+    \item \texttt{keywords}: ["withdraw", "balance"]
+\end{itemize}
+
+\column{0.5\textwidth}
+\textbf{Text Query Generated:}
+\begin{itemize}
+    \item "external call before state update"
+    \item "withdrawal function balance"
+    \item "state change after external call"
+\end{itemize}
+\end{columns}
+
+\vspace{0.5cm}
+\begin{block}{Query Construction}
+Kết hợp keywords + ordering patterns thành câu tự nhiên để search text database
+\end{block}
+\end{frame}
+
+\begin{frame}{Bước 3b: Tính Similarity Score}
+\textbf{Cosine Similarity Giữa Vector Embeddings}
+
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{Công thức:}
+\[
+\text{similarity} = \frac{\vec{A} \cdot \vec{B}}{|\vec{A}| \times |\vec{B}|}
+\]
+
+Kết quả: 0.0 (khác hoàn toàn) → 1.0 (giống hệt)
+
+\vspace{0.3cm}
+\textbf{Ví dụ thực tế:}
+\begin{itemize}
+    \item Finding 7425: \textbf{87\%} similarity
+    \item Finding 6201: \textbf{82\%} similarity
+    \item Finding 5003: \textbf{76\%} similarity
+    \item Finding 1234: 45\% → Loại bỏ
+\end{itemize}
+
+\column{0.5\textwidth}
+\textbf{Filtering Process:}
+
+\begin{enumerate}
+    \item Retrieve top k=8 findings
+    \item Tính cosine similarity cho mỗi finding
+    \item Chỉ giữ findings >60\% similarity
+    \item Kết quả: 5 findings chất lượng cao
+\end{enumerate}
+
+\vspace{0.3cm}
+\begin{block}{Tại sao 60\%?}
+Thực nghiệm cho thấy <60\% = noise, >60\% = relevant patterns
+\end{block}
+\end{columns}
+\end{frame}
+
 \begin{frame}[fragile]{Ví Dụ Finding Được Retrieve}
 \textbf{Dữ liệu từ Database}
 
@@ -314,24 +380,33 @@ OUTPUT FORMAT:
 \end{lstlisting}
 \end{frame}
 
-\begin{frame}{Kết Quả Phân Tích Của LLM}
-\begin{block}{Vulnerability Detected: Reentrancy Attack - HIGH}
-\small
-\textbf{Finding Reference:} [Finding 1] (87\% similarity)
+\begin{frame}[fragile]{Kết Quả Phân Tích Của LLM}
+\textbf{LLM Output Thực Tế}
 
-\textbf{Structural Match:}
-\begin{itemize}
-    \item User code: \texttt{msg.sender.call()} ở dòng 5
-    \item User code: \texttt{balances[msg.sender] = 0} ở dòng 10
-    \item Finding: Cùng pattern (external call $\rightarrow$ state change)
-\end{itemize}
+\lstset{style=jsonstyle}
+\begin{lstlisting}
+### Reentrancy Attack - HIGH
 
-\textbf{Tại sao có lỗ hổng:}
-External call ở dòng 5 có thể trigger callback đến contract của caller. Trong callback này, \texttt{balances[msg.sender]} vẫn còn giá trị, cho phép attacker gọi lại \texttt{withdraw()} và rút thêm tiền.
+**Finding Reference:** [Finding solodit_7425] (87% similarity)
 
-\textbf{Khuyến nghị:}
-Di chuyển state change lên trước external call (Checks-Effects-Interactions pattern)
-\end{block}
+**Structural Match:**
+Your code structure matches the vulnerable pattern found in [Finding solodit_7425]:
+- Line 5: External call (msg.sender.call) transfers control to untrusted code
+- Line 10: State update (balances[msg.sender] = 0) happens AFTER the call
+- This violates Checks-Effects-Interactions (CEI) pattern
+
+**Why This Is Vulnerable:**
+The external call at line 5 can trigger a callback to the caller's contract.
+During this callback, balances[msg.sender] still contains the old value,
+allowing the attacker to re-enter withdraw() and drain funds repeatedly.
+
+**Recommendation:**
+Move state update before external call:
+  balances[msg.sender] = 0;  // State change FIRST
+  msg.sender.call{value: amount}("");  // External call LAST
+
+**Confidence:** 95% (high structural similarity with known reentrancy pattern)
+\end{lstlisting}
 \end{frame}
 
 % SECTION 3
@@ -402,6 +477,78 @@ Test khả năng \textbf{tổng quát hóa} từ examples
 \end{columns}
 \end{frame}
 
+\begin{frame}[fragile]{Format Test Case (Giống Database)}
+\textbf{Test Case Structure - English Format}
+
+\lstset{style=jsonstyle}
+\begin{lstlisting}
+{
+  "name": "Reentrancy in withdraw function",
+  "code": "function withdraw() public {\n  uint256 amount = balances[msg.sender];\n  msg.sender.call{value: amount}(\"\");\n  balances[msg.sender] = 0;\n}",
+  "expected_vulnerabilities": [
+    {
+      "type": "reentrancy",
+      "severity": "HIGH",
+      "must_contain_keywords": ["external call", "state", "reentrancy"],
+      "description": "External call before state update allows reentrant calls"
+    }
+  ]
+}
+\end{lstlisting}
+
+\begin{block}{Tương tự Database Format}
+Cùng structure: code, vulnerability type, severity, description (như finding\_*.json)
+\end{block}
+\end{frame}
+
+\begin{frame}{Cách Tính Metrics}
+\textbf{Công Thức Đánh Giá}
+
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{Definitions:}
+\begin{itemize}
+    \item \textbf{TP} (True Positive): Phát hiện đúng vulnerability
+    \item \textbf{FP} (False Positive): Phát hiện sai (không có thực tế)
+    \item \textbf{FN} (False Negative): Bỏ lỡ (có nhưng không phát hiện)
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Formulas:}
+\begin{align*}
+\text{Precision} &= \frac{TP}{TP + FP} \\[0.3cm]
+\text{Recall} &= \frac{TP}{TP + FN} \\[0.3cm]
+\text{F1} &= 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}
+\end{align*}
+
+\column{0.5\textwidth}
+\textbf{Ví dụ tính toán:}
+
+10 test cases:
+\begin{itemize}
+    \item Expected: 9 vulnerabilities
+    \item Detected: 10 vulnerabilities
+    \item Correct: 8 vulnerabilities
+\end{itemize}
+
+\vspace{0.2cm}
+Tính toán:
+\begin{itemize}
+    \item TP = 8 (detected correctly)
+    \item FP = 2 (detected wrong type)
+    \item FN = 1 (missed)
+\end{itemize}
+
+\vspace{0.2cm}
+Results:
+\begin{itemize}
+    \item Precision = $\frac{8}{8+2} = 80\%$
+    \item Recall = $\frac{8}{8+1} = 89\%$
+    \item F1 = $2 \times \frac{0.8 \times 0.89}{0.8+0.89} = 84\%$
+\end{itemize}
+\end{columns}
+\end{frame}
+
 \begin{frame}{Metrics Hiệu Suất}
 \begin{columns}
 \column{0.5\textwidth}
@@ -440,37 +587,89 @@ False Negatives & 1 \\
 \end{block}
 \end{frame}
 
-\begin{frame}{Chi Tiết Kết Quả Tests}
+\begin{frame}{Chi Tiết Kết Quả Tests - Dễ Hiểu Hơn}
+\textbf{Kết Quả Từng Test Case}
+
 \begin{table}
 \centering
 \tiny
-\begin{tabular}{llcc}
+\begin{tabular}{llccp{1.5cm}}
 \toprule
-\textbf{Test Case} & \textbf{Expected} & \textbf{Detected} & \textbf{Result} \\
+\textbf{Test Case} & \textbf{Expected} & \textbf{Detected} & \textbf{Status} & \textbf{Category} \\
 \midrule
-Reentrancy trong withdraw & 1 vuln & 0 & FAIL \\
-Missing access control & 1 vuln & 0 & FAIL \\
-Unchecked return value & 1 vuln & 1 & PASS \\
-Timestamp dependence & 1 vuln & 0 & FAIL \\
-tx.origin authentication & 1 vuln & 1 & PASS \\
-Arbitrary delegatecall & 1 vuln & 0 & FAIL \\
-Unbounded loop DoS & 1 vuln & 1 (sai type) & FAIL (FP) \\
-Off-by-one loop error & 1 vuln & 1 & PASS \\
-Missing zero address check & 1 vuln & 1 (sai type) & FAIL (FP) \\
-Safe code (negative test) & 0 vuln & 0 & PASS \\
-\midrule
-\textbf{Tổng} & \textbf{9 vulns} & \textbf{8/2 FP/1 FN} & \textbf{8/10} \\
+Reentrancy withdraw & Has vuln & Not detected & \textcolor{red}{FAIL} & FN \\
+Missing access control & Has vuln & Not detected & \textcolor{red}{FAIL} & FN \\
+Unchecked return value & Has vuln & Detected correct & \textcolor{green}{PASS} & TP \\
+Timestamp dependence & Has vuln & Not detected & \textcolor{red}{FAIL} & FN \\
+tx.origin auth & Has vuln & Detected correct & \textcolor{green}{PASS} & TP \\
+Arbitrary delegatecall & Has vuln & Not detected & \textcolor{red}{FAIL} & FN \\
+Unbounded loop DoS & Has vuln & Wrong type & \textcolor{orange}{FAIL} & FP \\
+Off-by-one error & Has vuln & Detected correct & \textcolor{green}{PASS} & TP \\
+Zero address check & Has vuln & Wrong type & \textcolor{orange}{FAIL} & FP \\
+Safe code & No vuln & No detection & \textcolor{green}{PASS} & TN \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\begin{block}{Phân tích}
+\vspace{0.3cm}
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{Legend:}
 \begin{itemize}
-    \item True Positives: 8 (phát hiện đúng)
-    \item False Positives: 2 (phát hiện sai loại)
-    \item False Negatives: 1 (bỏ lỡ)
+    \item \textcolor{green}{PASS}: Kết quả đúng
+    \item \textcolor{red}{FAIL}: Bỏ lỡ vulnerability
+    \item \textcolor{orange}{FAIL}: Phát hiện sai loại
 \end{itemize}
-\end{block}
+
+\column{0.5\textwidth}
+\textbf{Summary:}
+\begin{itemize}
+    \item TP = 8 (detected correctly)
+    \item FP = 2 (wrong classification)
+    \item FN = 1 (missed)
+    \item Accuracy: 8/10 = \textbf{80\%}
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Phân Tích Chi Tiết 1 Test Case}
+\textbf{Example: Unchecked Return Value (PASS)}
+
+\begin{columns}
+\column{0.5\textwidth}
+\textbf{Input Code:}
+\begin{itemize}
+    \item Function: \texttt{executeTransaction}
+    \item Has: \texttt{target.call(data)}
+    \item Missing: return value check
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Expected:}
+\begin{itemize}
+    \item Type: "unchecked-call"
+    \item Severity: MEDIUM
+    \item Keywords: ["return value", "unchecked"]
+\end{itemize}
+
+\column{0.5\textwidth}
+\textbf{System Detected:}
+\begin{itemize}
+    \item Type: "unchecked-call" \textcolor{green}{✓}
+    \item Severity: MEDIUM \textcolor{green}{✓}
+    \item Keywords found: \textcolor{green}{✓}
+    \item Citation: [Finding 5123]
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Evaluation:}
+\begin{itemize}
+    \item Match type? YES → TP
+    \item Contains keywords? YES
+    \item Has citation? YES
+    \item \textbf{Result: PASS \textcolor{green}{✓}}
+\end{itemize}
+\end{columns}
 \end{frame}
 
 % SECTION 5

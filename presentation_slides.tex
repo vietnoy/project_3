@@ -106,7 +106,7 @@
 % SECTION 2
 \section{Cơ Chế Hoạt Động}
 
-\begin{frame}{Bước 1: User Gửi Code}
+\begin{frame}[fragile]{Bước 1: User Gửi Code}
 \begin{columns}
 \column{0.5\textwidth}
 \textbf{Ví dụ: Hàm withdraw có lỗ hổng}
@@ -145,7 +145,7 @@ function withdraw() public {
 \end{columns}
 \end{frame}
 
-\begin{frame}{Bước 2: Structural Extraction (30\%)}
+\begin{frame}[fragile]{Bước 2: Structural Extraction (30\%)}
 \textbf{Trích xuất Generic Patterns - KHÔNG phân loại vulnerability}
 
 \lstset{style=pythonstyle}
@@ -171,7 +171,7 @@ Chúng ta KHÔNG nói "đây là reentrancy" - chỉ mô tả cấu trúc: "call
 \end{block}
 \end{frame}
 
-\begin{frame}{Bước 3: Dual Database Retrieval (40\%)}
+\begin{frame}[fragile]{Bước 3: Dual Database Retrieval (40\%)}
 \textbf{Query Hai Database Chuyên Biệt}
 
 \begin{columns}
